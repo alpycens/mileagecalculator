@@ -47,25 +47,31 @@
   .hint{font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;}
   .neg{color:var(--warn);}
   #searchBox{margin-bottom:8px;}
-  .setup{max-width:560px;margin:40px auto;padding:0 16px;}
+  .setup{max-width:620px;margin:40px auto;padding:0 16px;}
   .setup .card{background:var(--panel);}
+  .setup code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#38bdf8;font-size:12px;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   a{color:var(--accent);}
   .err{color:var(--danger);font-size:12px;margin-top:6px;}
+  select{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;}
 </style>
 </head>
 <body>
 
+<!-- Bu ekran SADECE key gomulmediyse gorunur (deploy oncesi sana hatirlatma). Kullanicilar gormez. -->
 <div id="setup" class="setup" style="display:none;">
   <div class="card">
-    <h2>Google Maps API Key Gerekli</h2>
-    <p class="hint">Bu app GitHub Pages uzerinde calisir ve Google Maps kullanir. Kendi API key'inizi girin.
-    Google Cloud Console'da su API'leri aktif edin: <b>Maps JavaScript API</b>, <b>Directions API</b>, <b>Places API</b>.
-    Key'i sadece kendi domain'inize (orn. alpycens.github.io) kisitlamaniz onerilir.</p>
-    <label>Google Maps API Key</label>
-    <input type="text" id="apiKeyInput" placeholder="AIza...">
-    <button class="wide green" id="saveKeyBtn">Kaydet ve Baslat</button>
-    <div class="err" id="setupErr"></div>
+    <h2>Kurulum (tek sefer, sadece sen)</h2>
+    <p class="hint">
+      Bu dosyanin ustundeki script icinde <code>GOOGLE_MAPS_API_KEY</code> hala placeholder.
+      Kendi Google Maps API key'ini oraya yapistir, dosyayi GitHub'a push et.
+      Bundan sonra siteyi acan herkes hicbir sey girmeden kullanir.
+    </p>
+    <p class="hint">
+      Google Cloud Console'da aktif et: <b>Maps JavaScript API</b>, <b>Directions API</b>, <b>Places API</b>.
+      Key'i <b>Application restrictions -> Websites</b> altinda sadece kendi domain'ine kisitla
+      (orn. <code>https://alpycens.github.io/*</code>). Boylece key acikta olsa bile baskasi kullanamaz.
+    </p>
   </div>
 </div>
 
@@ -85,7 +91,7 @@
           <button class="main-c" data-role="main">Ana Mezbaha</button>
           <button class="work-c" data-role="work">Gidilen Mezbaha</button>
         </div>
-        <p class="hint">Once bir buton sec, sonra haritaya tikla ya da yukaridan ara. Secili tur ilgili konumu ayarlar.</p>
+        <p class="hint">Once bir buton sec, sonra haritaya tikla ya da yukaridan ara. Secili tur ilgili konumu ayarlar. Ev ve ana mezbaha kaydedilir; sonraki acilislarda hazir gelir.</p>
         <div id="locList"></div>
       </div>
 
@@ -98,7 +104,7 @@
           </div>
           <div>
             <label>Yolculuk tipi</label>
-            <select id="tripType" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;">
+            <select id="tripType">
               <option value="1">Tek yon</option>
               <option value="2" selected>Gidis-donus</option>
             </select>
@@ -111,8 +117,6 @@
         <h2>3. Sonuc</h2>
         <div id="results"></div>
       </div>
-
-      <button class="ghost wide" id="resetKeyBtn" style="margin-top:4px;">API Key'i Degistir</button>
     </div>
   </div>
 </div>
@@ -120,8 +124,16 @@
 <script>
 "use strict";
 
+/* =====================================================================
+   BURAYA KENDI GOOGLE MAPS API KEY'INI YAPISTIR (tek sefer).
+   Key client-side'da her zaman gorunur; guvenlik domain kisitlamasiyla saglanir.
+   Google Cloud Console -> Credentials -> API key -> Application restrictions
+   -> Websites -> https://alpycens.github.io/* ekle.
+   ===================================================================== */
+var GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE";
+/* ===================================================================== */
+
 var STORE_KEY = "ov_mileage_v1";
-var API_KEY_STORE = "ov_maps_apikey";
 
 var state = {
   home: null,   // {lat,lng,address}
@@ -153,37 +165,21 @@ function saveState(){
   }catch(e){}
 }
 
-/* ---------- API key bootstrap ---------- */
+/* ---------- bootstrap ---------- */
 function boot(){
-  var key = localStorage.getItem(API_KEY_STORE);
-  if(!key){
+  if(!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE"){
     document.getElementById("setup").style.display = "block";
     return;
   }
-  injectMaps(key);
-}
-function injectMaps(key){
   var s = document.createElement("script");
-  s.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(key) +
+  s.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(GOOGLE_MAPS_API_KEY) +
           "&libraries=places&callback=initMap&v=weekly";
   s.async = true;
   s.onerror = function(){
     document.getElementById("setup").style.display = "block";
-    document.getElementById("setupErr").textContent = "Maps yuklenemedi. API key'i ve aktif API'leri kontrol edin.";
   };
   document.head.appendChild(s);
 }
-document.getElementById("saveKeyBtn").addEventListener("click", function(){
-  var v = document.getElementById("apiKeyInput").value.trim();
-  if(!v){ document.getElementById("setupErr").textContent = "Key bos olamaz."; return; }
-  localStorage.setItem(API_KEY_STORE, v);
-  document.getElementById("setup").style.display = "none";
-  injectMaps(v);
-});
-document.getElementById("resetKeyBtn").addEventListener("click", function(){
-  localStorage.removeItem(API_KEY_STORE);
-  location.reload();
-});
 
 /* ---------- map init ---------- */
 window.initMap = function(){
@@ -224,7 +220,6 @@ window.initMap = function(){
     });
   });
 
-  // role buttons
   var btns = document.querySelectorAll(".loc-btns button");
   btns.forEach(function(b){
     b.addEventListener("click", function(){
@@ -325,16 +320,16 @@ function calculate(){
   resEl.innerHTML = "Hesaplaniyor...";
 
   Promise.all([
-    routeDistance(state.home, state.main),  // baseline commute
-    routeDistance(state.home, state.work)   // gidilen mezbaha
+    routeDistance(state.home, state.main),
+    routeDistance(state.home, state.work)
   ]).then(function(r){
     var base = r[0], work = r[1];
     var MI = 1609.344;
 
     var baseMi = base.meters / MI;
     var workMi = work.meters / MI;
-    var excessMiOne = workMi - baseMi;              // tek yon fazlalik
-    var excessMi = excessMiOne * trip;              // gidis-donus carpani
+    var excessMiOne = workMi - baseMi;
+    var excessMi = excessMiOne * trip;
     if(excessMi < 0) excessMi = 0;
 
     var baseMin = base.seconds/60;
@@ -373,7 +368,6 @@ function fmtHrs(min){
   return (h>0? h+"s " : "") + m+"dk";
 }
 
-/* ---------- start ---------- */
 boot();
 </script>
 </body>
