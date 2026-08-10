@@ -8,7 +8,7 @@
   :root{
     --bg:#0f172a; --panel:#1e293b; --panel2:#334155; --line:#475569;
     --text:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8; --accent2:#22c55e;
-    --warn:#f59e0b; --danger:#ef4444; --radius:10px;
+    --warn:#f59e0b; --danger:#ef4444; --plant:#a855f7; --radius:10px;
   }
   *{box-sizing:border-box;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
@@ -45,7 +45,7 @@
   .neg{color:var(--warn);}
   .setup{max-width:620px;margin:40px auto;padding:0 16px;}
   .setup .card{background:var(--panel);}
-  .setup code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#38bdf8;font-size:12px;}
+  .setup code,code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#38bdf8;font-size:12px;}
   a{color:var(--accent);}
   .err{color:var(--danger);font-size:12px;margin-top:6px;}
   .legend{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:6px;flex-wrap:wrap;}
@@ -56,26 +56,29 @@
   .plist{max-height:180px;overflow-y:auto;}
   .badge{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;
          padding:2px 6px;font-size:11px;color:var(--accent);margin-left:6px;}
+  /* combobox */
+  .combo{position:relative;}
+  .combo-caret{position:absolute;right:10px;top:10px;color:var(--muted);pointer-events:none;font-size:12px;}
+  .combo-list{display:none;margin-top:4px;border:1px solid var(--line);border-radius:8px;
+        background:var(--bg);max-height:240px;overflow-y:auto;}
+  .combo-item{padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line);}
+  .combo-item:last-child{border-bottom:none;}
+  .combo-item:hover{background:var(--panel2);}
+  .combo-item small{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
 </style>
 </head>
 <body>
 
 <div id="setup" class="setup" style="display:none;">
   <div class="card">
-    <h2>Setup (owner only)</h2>
-    <p class="hint">
-      <code>GOOGLE_MAPS_API_KEY</code> in the script is still a placeholder.
-      Paste your own Google Maps API key there (the same one you already created) and push the file to GitHub.
-      Restrict the key under <b>Websites</b> to <code>alpycens.github.io/*</code>.
-    </p>
+    <h2>Setup issue</h2>
+    <p class="hint">Google Maps could not load. Check that the API key is valid and restricted to <code>alpycens.github.io/*</code>, and that Maps JavaScript / Directions / Places APIs are enabled.</p>
   </div>
 </div>
 
 <div id="app" style="display:none;">
   <header>
-    <div>
-      <h1>Travel Time & Mileage Claim</h1>
-    </div>
+    <div><h1>Travel Time & Mileage Claim</h1></div>
     <button class="ghost small" id="adminToggle">Admin</button>
   </header>
 
@@ -85,8 +88,8 @@
 
       <div class="card">
         <h2>Address search</h2>
-        <input type="text" id="searchBox" placeholder="Search postcode or address...">
-        <p class="hint" id="searchHint">Used when setting Home, or a plant location in Admin. Pick the target first (button below / in Admin).</p>
+        <input type="text" id="searchBox" placeholder="Postcode, address, or coordinates...">
+        <p class="hint" id="searchHint">Pick a target first (Set home, or Set plant location in Admin). You can also paste coordinates like <code>52&deg;15'23.6"N 1&deg;57'31.7"W</code> or <code>52.256, -1.958</code> and press Enter.</p>
       </div>
 
       <!-- USER VIEW -->
@@ -100,11 +103,19 @@
         <div class="card">
           <h2>Journey</h2>
           <label>Base plant</label>
-          <input type="text" id="mainPick" list="plantList" placeholder="Type approval number, or click a plant on the map...">
+          <div class="combo">
+            <input type="text" id="mainPick" autocomplete="off" placeholder="Click to choose, type number, or click a map pin...">
+            <span class="combo-caret">&#9662;</span>
+            <div class="combo-list" id="mainList"></div>
+          </div>
           <div id="mainInfo" class="hint"></div>
 
           <label style="margin-top:10px;">Visited plant</label>
-          <input type="text" id="workPick" list="plantList" placeholder="Type approval number, or click a plant on the map...">
+          <div class="combo">
+            <input type="text" id="workPick" autocomplete="off" placeholder="Click to choose, type number, or click a map pin...">
+            <span class="combo-caret">&#9662;</span>
+            <div class="combo-list" id="workList"></div>
+          </div>
           <div id="workInfo" class="hint"></div>
 
           <label style="margin-top:10px;">Trip type</label>
@@ -133,6 +144,7 @@
           <button class="ghost wide" id="setPlantLocBtn">Set location (search above or click map)</button>
           <div id="pLocInfo" class="hint">No location set.</div>
           <button class="green wide" id="savePlantBtn">Save plant</button>
+          <p class="hint">Tip: after saving, you can drag any purple pin on the map to fine-tune its exact position.</p>
         </div>
 
         <div class="card">
@@ -154,22 +166,15 @@
   </div>
 </div>
 
-<datalist id="plantList"></datalist>
-
 <script>
 "use strict";
 
-/* =====================================================================
-   PASTE YOUR OWN GOOGLE MAPS API KEY HERE (same key you already made).
-   Restrict it to Websites -> alpycens.github.io/*
-   ===================================================================== */
 var GOOGLE_MAPS_API_KEY = "AIzaSyDqwaO3Xcy8D-5MzL5gAxo0RNvflRNogXw";
-/* ===================================================================== */
 
 /* =====================================================================
    PLANT DATABASE (shared with all users).
-   Add plants in Admin, click "Generate deployment code", and paste the
-   result over this whole line, then push to GitHub.
+   Add plants in Admin, click "Generate deployment code", paste the result
+   over this whole line, then push to GitHub.
    ===================================================================== */
 var SEED_PLANTS = [];
 /* ===================================================================== */
@@ -178,30 +183,21 @@ var STORE_KEY = "ov_mileage_v1";
 var PLANTS_KEY = "ov_plants_v1";
 
 var state = {
-  home: null,
-  main: null,          // base plant object
-  work: null,          // visited plant object
-  activeTarget: null,  // 'home' | 'adminPlant'
-  tempPlantLoc: null,
-  adminView: false
+  home: null, main: null, work: null,
+  activeTarget: null, tempPlantLoc: null, adminView: false
 };
 
 var localPlants = [];
 var map, geocoder, directionsService, searchAC, infoWin;
-var homeMarker=null, mainMarker=null, workMarker=null;
+var homeMarker=null, mainMarker=null, workMarker=null, tmpM=null;
 var plantMarkers = [];
 var baseRenderer=null, workRenderer=null;
 
 /* ---------- persistence ---------- */
 function loadState(){
   try{
-    var raw = localStorage.getItem(STORE_KEY);
-    if(raw){
-      var d = JSON.parse(raw);
-      state.home = d.home || null;
-      state._mainApproval = d.mainApproval || null;
-      state._workApproval = d.workApproval || null;
-    }
+    var d = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if(d){ state.home=d.home||null; state._mainApproval=d.mainApproval||null; state._workApproval=d.workApproval||null; }
   }catch(e){}
 }
 function saveState(){
@@ -213,51 +209,76 @@ function saveState(){
     }));
   }catch(e){}
 }
-function loadPlants(){
-  try{ localPlants = JSON.parse(localStorage.getItem(PLANTS_KEY) || "[]"); }
-  catch(e){ localPlants = []; }
-}
-function savePlants(){
-  try{ localStorage.setItem(PLANTS_KEY, JSON.stringify(localPlants)); }catch(e){}
-}
+function loadPlants(){ try{ localPlants = JSON.parse(localStorage.getItem(PLANTS_KEY) || "[]"); }catch(e){ localPlants=[]; } }
+function savePlants(){ try{ localStorage.setItem(PLANTS_KEY, JSON.stringify(localPlants)); }catch(e){} }
 function effectivePlants(){
-  var m = {};
-  (SEED_PLANTS||[]).forEach(function(p){ m[String(p.approval)] = p; });
-  localPlants.forEach(function(p){ m[String(p.approval)] = p; });
+  var m={};
+  (SEED_PLANTS||[]).forEach(function(p){ m[String(p.approval)]=p; });
+  localPlants.forEach(function(p){ m[String(p.approval)]=p; });
   return Object.keys(m).map(function(k){ return m[k]; });
 }
 function plantByApproval(num){
-  num = String(num).trim();
-  var all = effectivePlants();
-  for(var i=0;i<all.length;i++){ if(String(all[i].approval).trim() === num) return all[i]; }
+  num=String(num).trim();
+  var all=effectivePlants();
+  for(var i=0;i<all.length;i++){ if(String(all[i].approval).trim()===num) return all[i]; }
   return null;
+}
+function upsertLocalPlant(obj){
+  var idx=-1;
+  for(var i=0;i<localPlants.length;i++){ if(String(localPlants[i].approval)===String(obj.approval)){ idx=i; break; } }
+  if(idx>=0) localPlants[idx]=obj; else localPlants.push(obj);
+  savePlants();
+  if(state.main && String(state.main.approval)===String(obj.approval)) state.main=obj;
+  if(state.work && String(state.work.approval)===String(obj.approval)) state.work=obj;
+  refreshMarkers();
 }
 
 /* ---------- bootstrap ---------- */
 function boot(){
-  if(!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE"){
-    document.getElementById("setup").style.display = "block";
-    return;
-  }
-  var s = document.createElement("script");
-  s.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(GOOGLE_MAPS_API_KEY) +
-          "&libraries=places&callback=initMap&v=weekly";
-  s.async = true;
-  s.onerror = function(){ document.getElementById("setup").style.display = "block"; };
+  var s=document.createElement("script");
+  s.src="https://maps.googleapis.com/maps/api/js?key="+encodeURIComponent(GOOGLE_MAPS_API_KEY)+"&libraries=places&callback=initMap&v=weekly";
+  s.async=true;
+  s.onerror=function(){ document.getElementById("setup").style.display="block"; };
   document.head.appendChild(s);
+}
+
+/* ---------- coordinate parsing ---------- */
+function parseCoordinates(str){
+  if(!str) return null;
+  var s=str.trim();
+  var d=s.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
+  if(d){
+    var la=+d[1], ln=+d[2];
+    if(la>=-90&&la<=90&&ln>=-180&&ln<=180) return {lat:la,lng:ln};
+  }
+  var re=/(\d{1,3})\s*[\u00B0:\s]\s*(\d{1,2})\s*['\u2032:\s]\s*([\d.]+)?\s*["\u2033]?\s*([NSEWnsew])/g;
+  var parts=[], mm;
+  while((mm=re.exec(s))!==null){
+    var deg=+mm[1], min=+mm[2], sec=mm[3]?+mm[3]:0, hem=mm[4].toUpperCase();
+    var val=deg+min/60+sec/3600;
+    if(hem==="S"||hem==="W") val=-val;
+    parts.push({val:val,hem:hem});
+    if(parts.length===2) break;
+  }
+  if(parts.length===2){
+    var lat,lng;
+    if(parts[0].hem==="N"||parts[0].hem==="S"){ lat=parts[0].val; lng=parts[1].val; }
+    else { lng=parts[0].val; lat=parts[1].val; }
+    if(lat>=-90&&lat<=90&&lng>=-180&&lng<=180) return {lat:lat,lng:lng};
+  }
+  return null;
 }
 
 /* ---------- map init ---------- */
 window.initMap = function(){
-  loadState();
-  loadPlants();
-  document.getElementById("app").style.display = "block";
+  loadState(); loadPlants();
+  document.getElementById("app").style.display="block";
 
-  var center = {lat:52.9226, lng:-1.4746};
-  if(state.home) center = {lat:state.home.lat, lng:state.home.lng};
+  var center={lat:52.9226, lng:-1.4746};
+  if(state.home) center={lat:state.home.lat, lng:state.home.lng};
 
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: center, zoom: 9, mapTypeControl:false, streetViewControl:false,
+  map=new google.maps.Map(document.getElementById("map"),{
+    center:center, zoom:9, mapTypeControl:false, streetViewControl:false,
     styles:[{elementType:"geometry",stylers:[{color:"#1e293b"}]},
             {elementType:"labels.text.fill",stylers:[{color:"#94a3b8"}]},
             {elementType:"labels.text.stroke",stylers:[{color:"#0f172a"}]},
@@ -265,28 +286,36 @@ window.initMap = function(){
             {featureType:"road",elementType:"geometry",stylers:[{color:"#334155"}]},
             {featureType:"poi",stylers:[{visibility:"off"}]}]
   });
-  geocoder = new google.maps.Geocoder();
-  directionsService = new google.maps.DirectionsService();
-  infoWin = new google.maps.InfoWindow();
+  geocoder=new google.maps.Geocoder();
+  directionsService=new google.maps.DirectionsService();
+  infoWin=new google.maps.InfoWindow();
 
-  baseRenderer = new google.maps.DirectionsRenderer({
-    map:map, suppressMarkers:true, preserveViewport:true,
-    polylineOptions:{strokeColor:"#ef4444", strokeWeight:4, strokeOpacity:0.6}});
-  workRenderer = new google.maps.DirectionsRenderer({
-    map:map, suppressMarkers:true, preserveViewport:true,
-    polylineOptions:{strokeColor:"#22c55e", strokeWeight:5, strokeOpacity:0.9}});
+  baseRenderer=new google.maps.DirectionsRenderer({map:map,suppressMarkers:true,preserveViewport:true,
+    polylineOptions:{strokeColor:"#ef4444",strokeWeight:4,strokeOpacity:0.6}});
+  workRenderer=new google.maps.DirectionsRenderer({map:map,suppressMarkers:true,preserveViewport:true,
+    polylineOptions:{strokeColor:"#22c55e",strokeWeight:5,strokeOpacity:0.9}});
 
-  searchAC = new google.maps.places.Autocomplete(document.getElementById("searchBox"),
+  searchAC=new google.maps.places.Autocomplete(document.getElementById("searchBox"),
     {componentRestrictions:{country:"gb"}, fields:["geometry","formatted_address","name"]});
   searchAC.addListener("place_changed", function(){
-    var p = searchAC.getPlace();
+    var p=searchAC.getPlace();
     if(!p.geometry){ return; }
-    var loc = {lat:p.geometry.location.lat(), lng:p.geometry.location.lng(),
-               address:p.formatted_address || p.name || ""};
-    applyLocation(loc);
-    map.panTo(p.geometry.location);
-    map.setZoom(13);
-    document.getElementById("searchBox").value = "";
+    applyLocation({lat:p.geometry.location.lat(), lng:p.geometry.location.lng(), address:p.formatted_address||p.name||""});
+    map.panTo(p.geometry.location); map.setZoom(13);
+    document.getElementById("searchBox").value="";
+  });
+  document.getElementById("searchBox").addEventListener("keydown", function(e){
+    if(e.key==="Enter"){
+      var c=parseCoordinates(this.value);
+      if(c){
+        e.preventDefault(); e.stopPropagation();
+        var self=this;
+        reverseGeocode(new google.maps.LatLng(c.lat,c.lng), function(addr){
+          applyLocation({lat:c.lat,lng:c.lng,address:addr||self.value.trim()});
+        });
+        map.panTo(c); map.setZoom(14); this.value="";
+      }
+    }
   });
 
   map.addListener("click", function(e){
@@ -304,10 +333,10 @@ window.initMap = function(){
   document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
   document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
-  document.getElementById("mainPick").addEventListener("change", function(){ pickPlant("main", this.value); });
-  document.getElementById("workPick").addEventListener("change", function(){ pickPlant("work", this.value); });
 
-  rebuildDatalist();
+  setupCombobox("mainPick","mainList","main");
+  setupCombobox("workPick","workList","work");
+
   showPlantMarkers();
   restoreSelections();
   refreshMarkers();
@@ -316,19 +345,19 @@ window.initMap = function(){
 };
 
 function setTarget(t){
-  state.activeTarget = t;
-  var hint = document.getElementById("searchHint");
-  if(t==="home") hint.textContent = "Now setting HOME. Search above or click the map.";
-  else if(t==="adminPlant") hint.textContent = "Now setting the new PLANT location. Search above or click the map.";
+  state.activeTarget=t;
+  var hint=document.getElementById("searchHint");
+  if(t==="home") hint.textContent="Now setting HOME. Search / paste coordinates above, or click the map.";
+  else if(t==="adminPlant") hint.textContent="Now setting the new PLANT location. Search / paste coordinates above, or click the map.";
   document.getElementById("searchBox").focus();
 }
 
 function applyLocation(loc){
-  if(state.activeTarget === "home"){
-    state.home = loc; saveState(); refreshMarkers(); renderHomeRow();
-  }else if(state.activeTarget === "adminPlant"){
-    state.tempPlantLoc = loc;
-    document.getElementById("pLocInfo").textContent = "Location: " + (loc.address || (loc.lat.toFixed(4)+", "+loc.lng.toFixed(4)));
+  if(state.activeTarget==="home"){
+    state.home=loc; saveState(); refreshMarkers(); renderHomeRow();
+  }else if(state.activeTarget==="adminPlant"){
+    state.tempPlantLoc=loc;
+    document.getElementById("pLocInfo").textContent="Location: "+(loc.address||(loc.lat.toFixed(4)+", "+loc.lng.toFixed(4)));
     tempMarker(loc);
   }else{
     alert("Pick a target first: Set home, or Set plant location in Admin.");
@@ -337,190 +366,196 @@ function applyLocation(loc){
 
 function reverseGeocode(latLng, cb){
   geocoder.geocode({location:latLng}, function(res, status){
-    if(status === "OK" && res[0]){ cb(res[0].formatted_address); }
-    else{ cb(latLng.lat().toFixed(5)+", "+latLng.lng().toFixed(5)); }
+    if(status==="OK" && res[0]) cb(res[0].formatted_address);
+    else cb(latLng.lat().toFixed(5)+", "+latLng.lng().toFixed(5));
   });
 }
 
 /* ---------- markers ---------- */
-function circleMarker(loc, color, letter, title){
+function circleMarker(loc,color,letter,title,draggable){
   return new google.maps.Marker({
-    position:{lat:loc.lat, lng:loc.lng}, map:map, title:title||"", zIndex:10,
-    label:{text:letter, color:"#fff", fontWeight:"700", fontSize:"12px"},
-    icon:{path:google.maps.SymbolPath.CIRCLE, scale:11,
-          fillColor:color, fillOpacity:1, strokeColor:"#fff", strokeWeight:2}
+    position:{lat:loc.lat,lng:loc.lng}, map:map, title:title||"", zIndex:10, draggable:!!draggable,
+    label:{text:letter,color:"#fff",fontWeight:"700",fontSize:"12px"},
+    icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:color,fillOpacity:1,strokeColor:"#fff",strokeWeight:2}
   });
 }
-var tmpM=null;
 function tempMarker(loc){
   if(tmpM) tmpM.setMap(null);
-  tmpM = circleMarker(loc, "#f59e0b", "P", "New plant location");
+  tmpM=circleMarker(loc,"#f59e0b","P","New plant location - drag to adjust",true);
+  tmpM.addListener("dragend", function(e){
+    reverseGeocode(e.latLng, function(addr){
+      state.tempPlantLoc={lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr};
+      document.getElementById("pLocInfo").textContent="Location: "+addr;
+    });
+  });
 }
 function refreshMarkers(){
   if(homeMarker){homeMarker.setMap(null);homeMarker=null;}
   if(mainMarker){mainMarker.setMap(null);mainMarker=null;}
   if(workMarker){workMarker.setMap(null);workMarker=null;}
-  if(state.home) homeMarker = circleMarker(state.home, "#3b82f6", "H", "Home");
-  if(state.main) mainMarker = circleMarker(state.main, "#ef4444", "B", "Base: "+state.main.name);
-  if(state.work) workMarker = circleMarker(state.work, "#22c55e", "V", "Visited: "+state.work.name);
+  if(state.home) homeMarker=circleMarker(state.home,"#3b82f6","H","Home",false);
+  if(state.main) mainMarker=circleMarker(state.main,"#ef4444","B","Base: "+state.main.name,false);
+  if(state.work) workMarker=circleMarker(state.work,"#22c55e","V","Visited: "+state.work.name,false);
 }
 function showPlantMarkers(){
   plantMarkers.forEach(function(m){ m.setMap(null); });
-  plantMarkers = [];
+  plantMarkers=[];
   effectivePlants().forEach(function(p){
-    var m = new google.maps.Marker({
-      position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")", zIndex:1,
-      icon:{path:google.maps.SymbolPath.CIRCLE, scale:6,
-            fillColor:"#cbd5e1", fillOpacity:0.95, strokeColor:"#0f172a", strokeWeight:1}
+    var m=new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")", zIndex:3,
+      draggable: state.adminView,
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:"#a855f7",fillOpacity:1,strokeColor:"#fff",strokeWeight:2.5}
     });
-    m.addListener("click", function(){ openPlantInfo(p, m); });
+    m.addListener("click", function(){ openPlantInfo(p,m); });
+    if(state.adminView){
+      m.addListener("dragend", function(e){
+        var la=e.latLng.lat(), ln=e.latLng.lng();
+        reverseGeocode(e.latLng, function(addr){
+          upsertLocalPlant({name:p.name, approval:p.approval, lat:la, lng:ln, address:addr});
+          p.lat=la; p.lng=ln; p.address=addr;
+          renderPlantAdminList();
+        });
+      });
+    }
     plantMarkers.push(m);
   });
 }
 function openPlantInfo(p, marker){
-  var div = document.createElement("div");
-  div.style.cssText = "color:#0f172a;font-family:sans-serif;min-width:180px";
-  var head = document.createElement("div");
-  head.style.cssText = "font-weight:700;margin-bottom:2px";
-  head.textContent = p.name;
-  var sub = document.createElement("div");
-  sub.style.cssText = "font-size:12px;color:#555;margin:0 0 8px";
-  sub.textContent = "Approval: " + p.approval;
-  var b1 = document.createElement("button");
-  b1.textContent = "Select as base plant";
-  b1.style.cssText = "cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0";
-  b1.onclick = function(){ selectPlantAs("main", p.approval); };
-  var b2 = document.createElement("button");
-  b2.textContent = "Select as visited plant";
-  b2.style.cssText = "cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e";
-  b2.onclick = function(){ selectPlantAs("work", p.approval); };
+  var div=document.createElement("div");
+  div.style.cssText="color:#0f172a;font-family:sans-serif;min-width:180px";
+  var head=document.createElement("div"); head.style.cssText="font-weight:700;margin-bottom:2px"; head.textContent=p.name;
+  var sub=document.createElement("div"); sub.style.cssText="font-size:12px;color:#555;margin:0 0 8px"; sub.textContent="Approval: "+p.approval;
+  var b1=document.createElement("button"); b1.textContent="Select as base plant";
+  b1.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0";
+  b1.onclick=function(){ selectPlantAs("main",p.approval); };
+  var b2=document.createElement("button"); b2.textContent="Select as visited plant";
+  b2.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e";
+  b2.onclick=function(){ selectPlantAs("work",p.approval); };
   div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2);
-  infoWin.setContent(div);
-  infoWin.open(map, marker);
+  infoWin.setContent(div); infoWin.open(map, marker);
 }
 function selectPlantAs(role, approval){
-  var p = plantByApproval(approval);
+  var p=plantByApproval(approval);
   if(!p) return;
-  document.getElementById(role==="main"?"mainPick":"workPick").value = p.approval;
+  document.getElementById(role==="main"?"mainPick":"workPick").value=p.approval;
   pickPlant(role, p.approval);
   if(infoWin) infoWin.close();
 }
 
-/* ---------- plant selection (user) ---------- */
-function rebuildDatalist(){
-  var dl = document.getElementById("plantList");
-  dl.innerHTML = "";
-  effectivePlants().forEach(function(p){
-    var o = document.createElement("option");
-    o.value = String(p.approval);
-    o.label = p.name + " (" + p.approval + ")";
-    dl.appendChild(o);
-  });
-}
-function pickPlant(role, val){
-  var p = plantByApproval(val);
-  var infoEl = document.getElementById(role==="main"?"mainInfo":"workInfo");
-  if(!p){
-    infoEl.textContent = "No plant with that approval number.";
-    infoEl.classList.add("neg");
-    return;
+/* ---------- combobox (click to open dropdown) ---------- */
+function setupCombobox(inputId, listId, role){
+  var input=document.getElementById(inputId);
+  var list=document.getElementById(listId);
+  function render(filter){
+    var all=effectivePlants();
+    if(filter){
+      var f=filter.toLowerCase();
+      all=all.filter(function(p){ return String(p.approval).toLowerCase().indexOf(f)>=0 || (p.name||"").toLowerCase().indexOf(f)>=0; });
+    }
+    if(all.length===0){
+      list.innerHTML='<div class="combo-item" style="cursor:default;color:var(--muted)">No plants added yet</div>';
+    }else{
+      list.innerHTML=all.map(function(p){
+        return '<div class="combo-item" data-ap="'+escapeHtml(String(p.approval))+'"><b>'+escapeHtml(String(p.approval))+'</b> - '+escapeHtml(p.name)+
+               (p.address?'<small>'+escapeHtml(p.address)+'</small>':'')+'</div>';
+      }).join("");
+      list.querySelectorAll(".combo-item[data-ap]").forEach(function(el){
+        el.addEventListener("mousedown", function(ev){
+          ev.preventDefault();
+          var ap=el.getAttribute("data-ap");
+          input.value=ap; pickPlant(role, ap); list.style.display="none";
+        });
+      });
+    }
+    list.style.display="block";
   }
+  input.addEventListener("focus", function(){ render(input.value.trim()); });
+  input.addEventListener("click", function(){ render(input.value.trim()); });
+  input.addEventListener("input", function(){
+    var v=input.value.trim();
+    render(v);
+    if(plantByApproval(v)) pickPlant(role, v);
+  });
+  input.addEventListener("blur", function(){ setTimeout(function(){ list.style.display="none"; }, 150); });
+}
+
+/* ---------- plant selection ---------- */
+function pickPlant(role, val){
+  var p=plantByApproval(val);
+  var infoEl=document.getElementById(role==="main"?"mainInfo":"workInfo");
+  if(!p){ infoEl.textContent="No plant with that approval number."; infoEl.classList.add("neg"); return; }
   infoEl.classList.remove("neg");
-  infoEl.textContent = p.name + "  -  " + (p.address || (p.lat.toFixed(4)+", "+p.lng.toFixed(4)));
-  state[role] = p;
-  saveState();
-  refreshMarkers();
+  infoEl.textContent=p.name+"  -  "+(p.address||(p.lat.toFixed(4)+", "+p.lng.toFixed(4)));
+  state[role]=p; saveState(); refreshMarkers();
   if(map) map.panTo({lat:p.lat,lng:p.lng});
 }
 function restoreSelections(){
-  if(state._mainApproval){
-    var pm = plantByApproval(state._mainApproval);
-    if(pm){ document.getElementById("mainPick").value = pm.approval; pickPlant("main", pm.approval); }
-  }
-  if(state._workApproval){
-    var pw = plantByApproval(state._workApproval);
-    if(pw){ document.getElementById("workPick").value = pw.approval; pickPlant("work", pw.approval); }
-  }
+  if(state._mainApproval){ var pm=plantByApproval(state._mainApproval); if(pm){ document.getElementById("mainPick").value=pm.approval; pickPlant("main",pm.approval); } }
+  if(state._workApproval){ var pw=plantByApproval(state._workApproval); if(pw){ document.getElementById("workPick").value=pw.approval; pickPlant("work",pw.approval); } }
 }
 
 /* ---------- admin ---------- */
 function toggleAdmin(){
-  state.adminView = !state.adminView;
-  document.getElementById("adminView").style.display = state.adminView ? "block" : "none";
-  document.getElementById("userView").style.display = state.adminView ? "none" : "block";
-  document.getElementById("adminToggle").textContent = state.adminView ? "Done" : "Admin";
-  if(!state.adminView){ state.activeTarget = null; if(tmpM){tmpM.setMap(null);tmpM=null;} }
-}
-function savePlant(){
-  var name = document.getElementById("pName").value.trim();
-  var approval = document.getElementById("pApproval").value.trim();
-  if(!name || !approval){ alert("Enter plant name and approval number."); return; }
-  if(!state.tempPlantLoc){ alert("Set the plant location first."); return; }
-  var idx = -1;
-  for(var i=0;i<localPlants.length;i++){ if(String(localPlants[i].approval)===approval){ idx=i; break; } }
-  var obj = {name:name, approval:approval,
-             lat:state.tempPlantLoc.lat, lng:state.tempPlantLoc.lng, address:state.tempPlantLoc.address||""};
-  if(idx>=0) localPlants[idx]=obj; else localPlants.push(obj);
-  savePlants();
-  document.getElementById("pName").value="";
-  document.getElementById("pApproval").value="";
-  document.getElementById("pLocInfo").textContent="No location set.";
-  state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;}
-  state.activeTarget=null;
-  rebuildDatalist();
-  renderPlantAdminList();
+  state.adminView=!state.adminView;
+  document.getElementById("adminView").style.display=state.adminView?"block":"none";
+  document.getElementById("userView").style.display=state.adminView?"none":"block";
+  document.getElementById("adminToggle").textContent=state.adminView?"Done":"Admin";
+  if(!state.adminView){ state.activeTarget=null; if(tmpM){tmpM.setMap(null);tmpM=null;} }
   showPlantMarkers();
 }
+function savePlant(){
+  var name=document.getElementById("pName").value.trim();
+  var approval=document.getElementById("pApproval").value.trim();
+  if(!name || !approval){ alert("Enter plant name and approval number."); return; }
+  if(!state.tempPlantLoc){ alert("Set the plant location first."); return; }
+  upsertLocalPlant({name:name, approval:approval, lat:state.tempPlantLoc.lat, lng:state.tempPlantLoc.lng, address:state.tempPlantLoc.address||""});
+  document.getElementById("pName").value=""; document.getElementById("pApproval").value="";
+  document.getElementById("pLocInfo").textContent="No location set.";
+  state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;} state.activeTarget=null;
+  renderPlantAdminList(); showPlantMarkers();
+}
 function renderPlantAdminList(){
-  var all = effectivePlants();
-  document.getElementById("plantCount").textContent = all.length;
-  var el = document.getElementById("plantAdminList");
-  if(all.length===0){ el.innerHTML = '<p class="hint">No plants yet.</p>'; return; }
-  var html = "";
-  all.forEach(function(p){
-    var isLocal = localPlants.some(function(x){ return String(x.approval)===String(p.approval); });
-    html += '<div class="loc-row">'+
-      '<span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+
+  var all=effectivePlants();
+  document.getElementById("plantCount").textContent=all.length;
+  var el=document.getElementById("plantAdminList");
+  if(all.length===0){ el.innerHTML='<p class="hint">No plants yet.</p>'; return; }
+  el.innerHTML=all.map(function(p){
+    var isLocal=localPlants.some(function(x){ return String(x.approval)===String(p.approval); });
+    return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+
       (isLocal?'':' <span class="badge">deployed</span>')+'</span>'+
-      (isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'">delete</span>':'')+
-      '</div>';
-  });
-  el.innerHTML = html;
+      (isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'">delete</span>':'')+'</div>';
+  }).join("");
   el.querySelectorAll(".clr").forEach(function(x){
     x.addEventListener("click", function(){
-      var ap = x.getAttribute("data-del");
-      localPlants = localPlants.filter(function(p){ return String(p.approval)!==ap; });
-      savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers();
+      var ap=x.getAttribute("data-del");
+      localPlants=localPlants.filter(function(p){ return String(p.approval)!==ap; });
+      savePlants(); renderPlantAdminList(); showPlantMarkers();
     });
   });
 }
 function genDeployCode(){
-  var all = effectivePlants();
-  var code = "var SEED_PLANTS = " + JSON.stringify(all) + ";";
-  var ta = document.getElementById("deployCode");
-  ta.style.display="block"; ta.value = code;
+  var code="var SEED_PLANTS = "+JSON.stringify(effectivePlants())+";";
+  var ta=document.getElementById("deployCode"); ta.style.display="block"; ta.value=code;
   document.getElementById("copyCodeBtn").style.display="block";
 }
 function copyDeployCode(){
-  var ta = document.getElementById("deployCode");
-  ta.select();
-  try{ document.execCommand("copy"); document.getElementById("copyCodeBtn").textContent="Copied"; }
-  catch(e){ alert("Copy manually from the box."); }
+  var ta=document.getElementById("deployCode"); ta.select();
+  try{ document.execCommand("copy"); document.getElementById("copyCodeBtn").textContent="Copied"; }catch(e){ alert("Copy manually from the box."); }
   setTimeout(function(){ document.getElementById("copyCodeBtn").textContent="Copy"; }, 1500);
 }
 function clearLocal(){
   if(!confirm("Clear plants saved in this browser? Do this only after you have deployed them to GitHub.")) return;
-  localPlants = []; savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers();
+  localPlants=[]; savePlants(); renderPlantAdminList(); showPlantMarkers();
 }
 
 /* ---------- home row ---------- */
 function renderHomeRow(){
-  var el = document.getElementById("homeRow");
-  if(!state.home){ el.innerHTML = '<p class="hint">Home not set.</p>'; return; }
-  el.innerHTML = '<div class="loc-row"><span class="dot" style="background:#3b82f6"></span>'+
-    '<span class="addr">'+escapeHtml(state.home.address || (state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)))+'</span>'+
+  var el=document.getElementById("homeRow");
+  if(!state.home){ el.innerHTML='<p class="hint">Home not set.</p>'; return; }
+  el.innerHTML='<div class="loc-row"><span class="dot" style="background:#3b82f6"></span>'+
+    '<span class="addr">'+escapeHtml(state.home.address||(state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)))+'</span>'+
     '<span class="clr" id="clrHome">clear</span></div>';
-  var c = document.getElementById("clrHome");
+  var c=document.getElementById("clrHome");
   if(c) c.addEventListener("click", function(){ state.home=null; saveState(); refreshMarkers(); renderHomeRow(); });
 }
 
@@ -530,85 +565,53 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){
 /* ---------- calculation + route drawing ---------- */
 function routeResult(origin, dest){
   return new Promise(function(resolve, reject){
-    directionsService.route({
-      origin:{lat:origin.lat,lng:origin.lng},
-      destination:{lat:dest.lat,lng:dest.lng},
-      travelMode: google.maps.TravelMode.DRIVING
-    }, function(res, status){
-      if(status === "OK" && res.routes[0]){ resolve(res); }
-      else{ reject(new Error("Route not found: "+status)); }
-    });
+    directionsService.route({origin:{lat:origin.lat,lng:origin.lng}, destination:{lat:dest.lat,lng:dest.lng}, travelMode:google.maps.TravelMode.DRIVING},
+      function(res, status){ if(status==="OK"&&res.routes[0]) resolve(res); else reject(new Error("Route not found: "+status)); });
   });
 }
-
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
-  if(!state.main){ alert("Select the Base plant by approval number or on the map."); return; }
-  if(!state.work){ alert("Select the Visited plant by approval number or on the map."); return; }
-  var trip = parseInt(document.getElementById("tripType").value, 10) || 1;
+  if(!state.main){ alert("Select the Base plant."); return; }
+  if(!state.work){ alert("Select the Visited plant."); return; }
+  var trip=parseInt(document.getElementById("tripType").value,10)||1;
+  var resEl=document.getElementById("results");
+  document.getElementById("resultCard").style.display="block";
+  resEl.innerHTML="Calculating...";
 
-  var resEl = document.getElementById("results");
-  document.getElementById("resultCard").style.display = "block";
-  resEl.innerHTML = "Calculating...";
+  Promise.all([routeResult(state.home,state.main), routeResult(state.home,state.work)]).then(function(r){
+    var baseRes=r[0], workRes=r[1];
+    baseRenderer.setDirections(baseRes); workRenderer.setDirections(workRes);
+    var baseLeg=baseRes.routes[0].legs[0], workLeg=workRes.routes[0].legs[0];
+    var MI=1609.344;
+    var baseMi=baseLeg.distance.value/MI, workMi=workLeg.distance.value/MI;
+    var excessMiOne=workMi-baseMi, excessMi=excessMiOne*trip; if(excessMi<0) excessMi=0;
+    var baseMin=baseLeg.duration.value/60, workMin=workLeg.duration.value/60;
+    var excessMinOne=workMin-baseMin, excessMin=excessMinOne*trip; if(excessMin<0) excessMin=0;
+    var negNote=(excessMiOne<0)?'<div class="hint neg">Visited plant is closer to home than the base plant. No claimable excess (0).</div>':'';
 
-  Promise.all([
-    routeResult(state.home, state.main),
-    routeResult(state.home, state.work)
-  ]).then(function(r){
-    var baseRes = r[0], workRes = r[1];
-    baseRenderer.setDirections(baseRes);
-    workRenderer.setDirections(workRes);
-
-    var baseLeg = baseRes.routes[0].legs[0];
-    var workLeg = workRes.routes[0].legs[0];
-    var MI = 1609.344;
-
-    var baseMi = baseLeg.distance.value / MI;
-    var workMi = workLeg.distance.value / MI;
-    var excessMiOne = workMi - baseMi;
-    var excessMi = excessMiOne * trip;
-    if(excessMi < 0) excessMi = 0;
-
-    var baseMin = baseLeg.duration.value/60;
-    var workMin = workLeg.duration.value/60;
-    var excessMinOne = workMin - baseMin;
-    var excessMin = excessMinOne * trip;
-    if(excessMin < 0) excessMin = 0;
-
-    var negNote = (excessMiOne < 0) ?
-      '<div class="hint neg">Visited plant is closer to home than the base plant. No claimable excess (0).</div>' : '';
-
-    resEl.innerHTML =
-      row("Home -> Base plant (baseline)", baseMi.toFixed(1)+" mi") +
-      row("Home -> Visited plant", workMi.toFixed(1)+" mi") +
-      row("Excess distance (one way)", excessMiOne.toFixed(1)+" mi") +
-      '<div class="result-line"><b>Claimable mileage</b><span class="big">'+excessMi.toFixed(1)+' mi</span></div>' +
-      '<div class="hint">('+(trip===2?"return":"one way")+')</div>' +
-      '<div style="height:10px"></div>' +
-      row("Base plant time (baseline)", baseMin.toFixed(0)+" min") +
-      row("Visited plant time", workMin.toFixed(0)+" min") +
-      row("Claimable travel time", excessMin.toFixed(0)+" min ("+fmtHrs(excessMin)+")") +
-      negNote +
+    resEl.innerHTML=
+      row("Home -> Base plant (baseline)", baseMi.toFixed(1)+" mi")+
+      row("Home -> Visited plant", workMi.toFixed(1)+" mi")+
+      row("Excess distance (one way)", excessMiOne.toFixed(1)+" mi")+
+      '<div class="result-line"><b>Claimable mileage</b><span class="big">'+excessMi.toFixed(1)+' mi</span></div>'+
+      '<div class="hint">('+(trip===2?"return":"one way")+')</div>'+
+      '<div style="height:10px"></div>'+
+      row("Base plant time (baseline)", baseMin.toFixed(0)+" min")+
+      row("Visited plant time", workMin.toFixed(0)+" min")+
+      row("Claimable travel time", excessMin.toFixed(0)+" min ("+fmtHrs(excessMin)+")")+
+      negNote+
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Visited route</span>'+
-      '<span><span class="bar" style="background:#ef4444"></span>Baseline route</span></div>' +
+      '<span><span class="bar" style="background:#ef4444"></span>Baseline route</span></div>'+
       '<div class="hint">Baseline = your normal home-to-base-plant journey (not claimable). It is deducted from the visited plant distance.</div>';
 
-    var b = new google.maps.LatLngBounds();
+    var b=new google.maps.LatLngBounds();
     baseRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
     workRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
     map.fitBounds(b);
-  }).catch(function(err){
-    resEl.innerHTML = '<div class="err">'+escapeHtml(err.message)+'</div>';
-  });
+  }).catch(function(err){ resEl.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
-
-function row(label, val){
-  return '<div class="result-line"><span>'+label+'</span><b>'+val+'</b></div>';
-}
-function fmtHrs(min){
-  var h = Math.floor(min/60), m = Math.round(min%60);
-  return (h>0? h+"h " : "") + m+"m";
-}
+function row(label,val){ return '<div class="result-line"><span>'+label+'</span><b>'+val+'</b></div>'; }
+function fmtHrs(min){ var h=Math.floor(min/60), m=Math.round(min%60); return (h>0?h+"h ":"")+m+"m"; }
 
 boot();
 </script>
