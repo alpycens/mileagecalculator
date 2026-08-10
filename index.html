@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -58,19 +58,19 @@
 </head>
 <body>
 
-<!-- Bu ekran SADECE key gomulmediyse gorunur (deploy oncesi sana hatirlatma). Kullanicilar gormez. -->
+<!-- This screen only shows if the key has not been embedded yet (a reminder for you before deploying). Users never see it. -->
 <div id="setup" class="setup" style="display:none;">
   <div class="card">
-    <h2>Kurulum (tek sefer, sadece sen)</h2>
+    <h2>Setup (one time, owner only)</h2>
     <p class="hint">
-      Bu dosyanin ustundeki script icinde <code>GOOGLE_MAPS_API_KEY</code> hala placeholder.
-      Kendi Google Maps API key'ini oraya yapistir, dosyayi GitHub'a push et.
-      Bundan sonra siteyi acan herkes hicbir sey girmeden kullanir.
+      <code>GOOGLE_MAPS_API_KEY</code> in the script below is still a placeholder.
+      Paste your own Google Maps API key there and push the file to GitHub.
+      After that, anyone who opens the site uses it without entering anything.
     </p>
     <p class="hint">
-      Google Cloud Console'da aktif et: <b>Maps JavaScript API</b>, <b>Directions API</b>, <b>Places API</b>.
-      Key'i <b>Application restrictions -> Websites</b> altinda sadece kendi domain'ine kisitla
-      (orn. <code>https://alpycens.github.io/*</code>). Boylece key acikta olsa bile baskasi kullanamaz.
+      In Google Cloud Console enable: <b>Maps JavaScript API</b>, <b>Directions API</b>, <b>Places API</b>.
+      Restrict the key under <b>Application restrictions -> Websites</b> to your own domain only
+      (e.g. <code>https://alpycens.github.io/*</code>). This way the key is safe even though it is visible in the source.
     </p>
   </div>
 </div>
@@ -78,43 +78,43 @@
 <div id="app" style="display:none;">
   <header>
     <h1>Travel Time & Mileage Claim</h1>
-    <p>Excess mileage hesaplama - Official Veterinarian / Mezbaha</p>
+    <p>Excess mileage calculator - Official Veterinarian / Slaughterhouse</p>
   </header>
   <div class="wrap">
     <div id="map"></div>
     <div class="side">
       <div class="card">
-        <h2>1. Konum Ara / Isaretle</h2>
-        <input type="text" id="searchBox" placeholder="Postcode veya adres ara...">
+        <h2>1. Search / Set Locations</h2>
+        <input type="text" id="searchBox" placeholder="Search postcode or address...">
         <div class="loc-btns">
-          <button class="home-c" data-role="home">Ev</button>
-          <button class="main-c" data-role="main">Ana Mezbaha</button>
-          <button class="work-c" data-role="work">Gidilen Mezbaha</button>
+          <button class="home-c" data-role="home">Home</button>
+          <button class="main-c" data-role="main">Main Plant</button>
+          <button class="work-c" data-role="work">Visited Plant</button>
         </div>
-        <p class="hint">Once bir buton sec, sonra haritaya tikla ya da yukaridan ara. Secili tur ilgili konumu ayarlar. Ev ve ana mezbaha kaydedilir; sonraki acilislarda hazir gelir.</p>
+        <p class="hint">Pick a button first, then click the map or use the search box. The active button sets that location. Home and main plant are saved and pre-loaded on your next visit.</p>
         <div id="locList"></div>
       </div>
 
       <div class="card">
-        <h2>2. Ayarlar</h2>
+        <h2>2. Settings</h2>
         <div class="row2">
           <div>
-            <label>Mileage rate (GBP/mil)</label>
+            <label>Mileage rate (GBP/mile)</label>
             <input type="number" id="rate" value="0.45" step="0.01" min="0">
           </div>
           <div>
-            <label>Yolculuk tipi</label>
+            <label>Trip type</label>
             <select id="tripType">
-              <option value="1">Tek yon</option>
-              <option value="2" selected>Gidis-donus</option>
+              <option value="1">One way</option>
+              <option value="2" selected>Return</option>
             </select>
           </div>
         </div>
-        <button class="wide green" id="calcBtn" style="margin-top:12px;">Hesapla</button>
+        <button class="wide green" id="calcBtn" style="margin-top:12px;">Calculate</button>
       </div>
 
       <div class="card" id="resultCard" style="display:none;">
-        <h2>3. Sonuc</h2>
+        <h2>3. Result</h2>
         <div id="results"></div>
       </div>
     </div>
@@ -125,12 +125,12 @@
 "use strict";
 
 /* =====================================================================
-   BURAYA KENDI GOOGLE MAPS API KEY'INI YAPISTIR (tek sefer).
-   Key client-side'da her zaman gorunur; guvenlik domain kisitlamasiyla saglanir.
+   PASTE YOUR OWN GOOGLE MAPS API KEY HERE (one time).
+   The key is always visible client-side; security comes from domain restriction.
    Google Cloud Console -> Credentials -> API key -> Application restrictions
-   -> Websites -> https://alpycens.github.io/* ekle.
+   -> Websites -> add https://alpycens.github.io/*
    ===================================================================== */
-var GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE";
+var GOOGLE_MAPS_API_KEY = "AIzaSyDqwaO3Xcy8D-5MzL5gAxo0RNvflRNogXw";
 /* ===================================================================== */
 
 var STORE_KEY = "ov_mileage_v1";
@@ -145,7 +145,7 @@ var state = {
 var map, geocoder, directionsService, autocomplete;
 var markers = { home:null, main:null, work:null };
 var roleColor = { home:"#3b82f6", main:"#ef4444", work:"#22c55e" };
-var roleLabel = { home:"Ev", main:"Ana Mezbaha", work:"Gidilen Mezbaha" };
+var roleLabel = { home:"Home", main:"Main Plant", work:"Visited Plant" };
 
 /* ---------- persistence ---------- */
 function loadState(){
@@ -186,7 +186,7 @@ window.initMap = function(){
   loadState();
   document.getElementById("app").style.display = "block";
 
-  var center = {lat:52.9226, lng:-1.4746}; // Derby varsayilan
+  var center = {lat:52.9226, lng:-1.4746}; // Derby default
   if(state.home) center = {lat:state.home.lat, lng:state.home.lng};
 
   map = new google.maps.Map(document.getElementById("map"), {
@@ -244,7 +244,7 @@ function reverseGeocode(latLng, cb){
 
 function setRoleLocation(loc){
   var role = state.activeRole;
-  if(!role){ alert("Once Ev / Ana Mezbaha / Gidilen Mezbaha butonlarindan birini secin."); return; }
+  if(!role){ alert("Pick Home / Main Plant / Visited Plant first."); return; }
   state[role] = loc;
   saveState();
   refreshMarkers();
@@ -273,8 +273,8 @@ function renderLocList(){
     var loc = state[role];
     html += '<div class="loc-row">'+
       '<span class="dot" style="background:'+roleColor[role]+'"></span>'+
-      '<span class="addr">'+roleLabel[role]+': '+(loc?escapeHtml(loc.address||(loc.lat.toFixed(4)+", "+loc.lng.toFixed(4))):'<i style="color:#64748b">secilmedi</i>')+'</span>'+
-      (loc?'<span class="clr" data-clr="'+role+'">temizle</span>':'')+
+      '<span class="addr">'+roleLabel[role]+': '+(loc?escapeHtml(loc.address||(loc.lat.toFixed(4)+", "+loc.lng.toFixed(4))):'<i style="color:#64748b">not set</i>')+'</span>'+
+      (loc?'<span class="clr" data-clr="'+role+'">clear</span>':'')+
       '</div>';
   });
   el.innerHTML = html;
@@ -301,7 +301,7 @@ function routeDistance(origin, dest){
         var leg = res.routes[0].legs[0];
         resolve({meters:leg.distance.value, seconds:leg.duration.value});
       }else{
-        reject(new Error("Rota bulunamadi: "+status));
+        reject(new Error("Route not found: "+status));
       }
     });
   });
@@ -309,7 +309,7 @@ function routeDistance(origin, dest){
 
 function calculate(){
   if(!state.home || !state.main || !state.work){
-    alert("Ev, Ana Mezbaha ve Gidilen Mezbaha - ucunu de isaretlemelisiniz.");
+    alert("You must set all three: Home, Main Plant and Visited Plant.");
     return;
   }
   var rate = parseFloat(document.getElementById("rate").value) || 0;
@@ -317,7 +317,7 @@ function calculate(){
 
   var resEl = document.getElementById("results");
   document.getElementById("resultCard").style.display = "block";
-  resEl.innerHTML = "Hesaplaniyor...";
+  resEl.innerHTML = "Calculating...";
 
   Promise.all([
     routeDistance(state.home, state.main),
@@ -340,21 +340,21 @@ function calculate(){
 
     var claim = excessMi * rate;
     var negNote = (excessMiOne < 0) ?
-      '<div class="hint neg">Gidilen mezbaha eve, ana mezbahadan daha yakin. Claim edilebilir excess yok (0).</div>' : '';
+      '<div class="hint neg">Visited plant is closer to home than the main plant. No claimable excess (0).</div>' : '';
 
     resEl.innerHTML =
-      row("Ev -> Ana mezbaha (baseline)", baseMi.toFixed(1)+" mi") +
-      row("Ev -> Gidilen mezbaha", workMi.toFixed(1)+" mi") +
-      row("Fazla mesafe (tek yon)", excessMiOne.toFixed(1)+" mi") +
-      row("Claim edilebilir mileage", excessMi.toFixed(1)+" mi ("+(trip===2?"gidis-donus":"tek yon")+")") +
+      row("Home -> Main plant (baseline)", baseMi.toFixed(1)+" mi") +
+      row("Home -> Visited plant", workMi.toFixed(1)+" mi") +
+      row("Excess distance (one way)", excessMiOne.toFixed(1)+" mi") +
+      row("Claimable mileage", excessMi.toFixed(1)+" mi ("+(trip===2?"return":"one way")+")") +
       '<div style="height:8px"></div>' +
-      row("Ana mezbaha suresi (baseline)", baseMin.toFixed(0)+" dk") +
-      row("Gidilen mezbaha suresi", workMin.toFixed(0)+" dk") +
-      row("Claim edilebilir travel time", excessMin.toFixed(0)+" dk ("+fmtHrs(excessMin)+")") +
+      row("Main plant time (baseline)", baseMin.toFixed(0)+" min") +
+      row("Visited plant time", workMin.toFixed(0)+" min") +
+      row("Claimable travel time", excessMin.toFixed(0)+" min ("+fmtHrs(excessMin)+")") +
       '<div style="height:12px"></div>' +
-      '<div class="result-line"><b>Mileage claim tutari</b><span class="big">GBP '+claim.toFixed(2)+'</span></div>' +
+      '<div class="result-line"><b>Mileage claim amount</b><span class="big">GBP '+claim.toFixed(2)+'</span></div>' +
       negNote +
-      '<div class="hint">Baseline = normal ev-ana mezbaha yolculugu (claim edilemez). Gidilen mezbaha mesafesinden bu dusulur.</div>';
+      '<div class="hint">Baseline = your normal home-to-main-plant journey (not claimable). It is deducted from the visited plant distance.</div>';
   }).catch(function(err){
     resEl.innerHTML = '<div class="err">'+escapeHtml(err.message)+'</div>';
   });
@@ -365,7 +365,7 @@ function row(label, val){
 }
 function fmtHrs(min){
   var h = Math.floor(min/60), m = Math.round(min%60);
-  return (h>0? h+"s " : "") + m+"dk";
+  return (h>0? h+"h " : "") + m+"m";
 }
 
 boot();
