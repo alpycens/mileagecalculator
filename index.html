@@ -182,7 +182,7 @@ var localPlants=[];
 var map, geocoder, directionsService, infoWin;
 var homeMarker=null, baseMarker=null, tmpM=null;
 var stopMarkers=[], plantMarkers=[];
-var baseRenderer=null, workRenderer=null;
+var tripLine=null, baseLine=null;
 var theme="dark";
 
 var DARK_STYLES=[{elementType:"geometry",stylers:[{color:"#1e293b"}]},
@@ -281,8 +281,8 @@ window.initMap=function(){
   directionsService=new google.maps.DirectionsService();
   infoWin=new google.maps.InfoWindow();
 
-  baseRenderer=new google.maps.DirectionsRenderer({map:map,suppressMarkers:true,preserveViewport:true,polylineOptions:{strokeColor:"#ef4444",strokeWeight:4,strokeOpacity:0.55}});
-  workRenderer=new google.maps.DirectionsRenderer({map:map,suppressMarkers:true,preserveViewport:true,polylineOptions:{strokeColor:"#22c55e",strokeWeight:5,strokeOpacity:0.9}});
+  tripLine=new google.maps.Polyline({map:map,strokeColor:"#22c55e",strokeWeight:5,strokeOpacity:0.9});
+  baseLine=new google.maps.Polyline({map:map,strokeColor:"#ef4444",strokeWeight:4,strokeOpacity:0.55});
 
   attachSearch("homeSearch", setHome);
   attachSearch("plantSearch", setPlantTemp);
@@ -486,33 +486,49 @@ function renderHomeRow(){
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; });}
 
-/* ---------- calculation (multi-stop) ---------- */
-function routeReq(req){ return new Promise(function(resolve, reject){ directionsService.route(req, function(res, status){ if(status==="OK"&&res.routes[0]) resolve(res); else reject(new Error("Route not found: "+status)); }); }); }
+/* ---------- calculation (multi-stop, shortest route) ---------- */
+function routeDist(rt){ var t=0; rt.legs.forEach(function(l){ t+=l.distance.value; }); return t; }
+function shortestRoute(origin, dest){
+  return new Promise(function(resolve, reject){
+    directionsService.route({origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING},
+      function(r, s){
+        if(s==="OK" && r.routes && r.routes.length){
+          var best=r.routes[0], bestD=routeDist(best);
+          r.routes.forEach(function(rt){ var d=routeDist(rt); if(d<bestD){ bestD=d; best=rt; } });
+          var leg=best.legs[0];
+          resolve({meters:leg.distance.value, seconds:leg.duration.value, path:best.overview_path});
+        } else reject(new Error("Route not found: "+s));
+      });
+  });
+}
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
   if(!state.base){ alert("Select the Base plant (your normal commute)."); return; }
   if(state.stops.length<1){ alert("Add at least one stop."); return; }
   var returnHome=document.getElementById("returnHome").checked; var MI=1609.344;
-  var waypoints=state.stops.map(function(p){ return {location:{lat:p.lat,lng:p.lng}, stopover:true}; });
-  var origin={lat:state.home.lat,lng:state.home.lng}; var destination, wp;
-  if(returnHome){ destination=origin; wp=waypoints; }
-  else{ var last=state.stops[state.stops.length-1]; destination={lat:last.lat,lng:last.lng}; wp=waypoints.slice(0,-1); }
-  var names=["Home"]; state.stops.forEach(function(s){ names.push(s.name); }); if(returnHome) names.push("Home");
-  var resEl=document.getElementById("results"); document.getElementById("resultCard").style.display="block"; resEl.innerHTML="Calculating...";
 
-  Promise.all([
-    routeReq({origin:origin, destination:destination, waypoints:wp, optimizeWaypoints:false, travelMode:google.maps.TravelMode.DRIVING}),
-    routeReq({origin:origin, destination:{lat:state.base.lat,lng:state.base.lng}, travelMode:google.maps.TravelMode.DRIVING})
-  ]).then(function(r){
-    var tripRes=r[0], baseRes=r[1];
-    workRenderer.setDirections(tripRes); baseRenderer.setDirections(baseRes);
-    var legs=tripRes.routes[0].legs; var totalMeters=0, totalSec=0, legRows="";
-    legs.forEach(function(leg,i){ totalMeters+=leg.distance.value; totalSec+=leg.duration.value; legRows+=row((names[i]||"?")+" -> "+(names[i+1]||"?"), (leg.distance.value/MI).toFixed(1)+" mi"); });
-    var baseOneMeters=baseRes.routes[0].legs[0].distance.value, baseOneSec=baseRes.routes[0].legs[0].duration.value;
-    var baseDeductMeters= returnHome ? baseOneMeters*2 : baseOneMeters;
-    var baseDeductSec= returnHome ? baseOneSec*2 : baseOneSec;
+  var pts=[state.home]; state.stops.forEach(function(s){ pts.push(s); }); if(returnHome) pts.push(state.home);
+  var names=["Home"]; state.stops.forEach(function(s){ names.push(s.name); }); if(returnHome) names.push("Home");
+
+  var resEl=document.getElementById("results"); document.getElementById("resultCard").style.display="block"; resEl.innerHTML="Calculating shortest route...";
+
+  var legPromises=[];
+  for(var i=0;i<pts.length-1;i++){ legPromises.push(shortestRoute({lat:pts[i].lat,lng:pts[i].lng},{lat:pts[i+1].lat,lng:pts[i+1].lng})); }
+  var basePromise=shortestRoute({lat:state.home.lat,lng:state.home.lng},{lat:state.base.lat,lng:state.base.lng});
+
+  Promise.all([Promise.all(legPromises), basePromise]).then(function(all){
+    var legs=all[0], baseLeg=all[1];
+    var totalMeters=0, totalSec=0, legRows="", tripPath=[];
+    legs.forEach(function(lg,i){ totalMeters+=lg.meters; totalSec+=lg.seconds;
+      legRows+=row((names[i]||"?")+" -> "+(names[i+1]||"?"), (lg.meters/MI).toFixed(1)+" mi");
+      lg.path.forEach(function(pt){ tripPath.push(pt); }); });
+
+    var baseDeductMeters= returnHome ? baseLeg.meters*2 : baseLeg.meters;
+    var baseDeductSec= returnHome ? baseLeg.seconds*2 : baseLeg.seconds;
     var claimMeters=Math.max(0, totalMeters-baseDeductMeters), claimSec=Math.max(0, totalSec-baseDeductSec);
     var totalMi=totalMeters/MI, deductMi=baseDeductMeters/MI, claimMi=claimMeters/MI, totalMin=totalSec/60, claimMin=claimSec/60;
+
+    tripLine.setPath(tripPath); baseLine.setPath(baseLeg.path);
 
     var summary='<div class="rsub" style="margin-bottom:6px;">Base: <b>'+escapeHtml(state.base.approval)+'</b> '+escapeHtml(state.base.name)+(ukPostcode(state.base.address)?' ('+escapeHtml(ukPostcode(state.base.address))+')':'')+'</div>';
     state.stops.forEach(function(s,i){ summary+='<div class="rsub">Stop '+(i+1)+': <b>'+escapeHtml(s.approval)+'</b> '+escapeHtml(s.name)+(ukPostcode(s.address)?' ('+escapeHtml(ukPostcode(s.address))+')':'')+'</div>'; });
@@ -525,12 +541,11 @@ function calculate(){
       '<div style="height:10px"></div>'+
       row("Total drive time", Math.round(totalMin)+" min")+
       row("Claimable travel time", Math.round(claimMin)+" min ("+fmtHrs(claimMin)+")")+
-      '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
-      '<div class="hint">Claimable = total miles driven minus your normal home&#8596;base-plant commute'+(returnHome?" (there and back)":"")+'.</div>';
+      '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route (shortest)</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
+      '<div class="hint">Shortest driving route used. Claimable = total miles minus your normal home&#8596;base-plant commute'+(returnHome?" (there and back)":"")+'.</div>';
 
     var b=new google.maps.LatLngBounds();
-    tripRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
-    baseRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
+    tripPath.forEach(function(pt){ b.extend(pt); }); baseLeg.path.forEach(function(pt){ b.extend(pt); });
     map.fitBounds(b);
   }).catch(function(err){ resEl.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
