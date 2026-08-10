@@ -16,8 +16,7 @@
   header{padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);
          display:flex;align-items:center;justify-content:space-between;gap:12px;}
   header h1{margin:0;font-size:17px;font-weight:600;}
-  header p{margin:3px 0 0;font-size:11px;color:var(--muted);}
-  .wrap{display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 62px);}
+  .wrap{display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 54px);}
   @media(max-width:900px){.wrap{grid-template-columns:1fr;height:auto;}#map{height:52vh;}}
   #map{width:100%;height:100%;background:#0b1220;}
   .side{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:16px;}
@@ -76,7 +75,6 @@
   <header>
     <div>
       <h1>Travel Time & Mileage Claim</h1>
-      <p>Excess mileage calculator - Official Veterinarian / Slaughterhouse</p>
     </div>
     <button class="ghost small" id="adminToggle">Admin</button>
   </header>
@@ -85,7 +83,6 @@
     <div id="map"></div>
     <div class="side">
 
-      <!-- Shared address search (applies to whatever you are setting) -->
       <div class="card">
         <h2>Address search</h2>
         <input type="text" id="searchBox" placeholder="Search postcode or address...">
@@ -101,13 +98,13 @@
         </div>
 
         <div class="card">
-          <h2>Journey (by approval number)</h2>
-          <label>Main plant</label>
-          <input type="text" id="mainPick" list="plantList" placeholder="Type approval number...">
+          <h2>Journey</h2>
+          <label>Base plant</label>
+          <input type="text" id="mainPick" list="plantList" placeholder="Type approval number, or click a plant on the map...">
           <div id="mainInfo" class="hint"></div>
 
           <label style="margin-top:10px;">Visited plant</label>
-          <input type="text" id="workPick" list="plantList" placeholder="Type approval number...">
+          <input type="text" id="workPick" list="plantList" placeholder="Type approval number, or click a plant on the map...">
           <div id="workInfo" class="hint"></div>
 
           <label style="margin-top:10px;">Trip type</label>
@@ -181,16 +178,16 @@ var STORE_KEY = "ov_mileage_v1";
 var PLANTS_KEY = "ov_plants_v1";
 
 var state = {
-  home: null,          // {lat,lng,address}
-  main: null,          // plant object
-  work: null,          // plant object
+  home: null,
+  main: null,          // base plant object
+  work: null,          // visited plant object
   activeTarget: null,  // 'home' | 'adminPlant'
-  tempPlantLoc: null,  // {lat,lng,address} while adding a plant
+  tempPlantLoc: null,
   adminView: false
 };
 
 var localPlants = [];
-var map, geocoder, directionsService, searchAC;
+var map, geocoder, directionsService, searchAC, infoWin;
 var homeMarker=null, mainMarker=null, workMarker=null;
 var plantMarkers = [];
 var baseRenderer=null, workRenderer=null;
@@ -270,6 +267,7 @@ window.initMap = function(){
   });
   geocoder = new google.maps.Geocoder();
   directionsService = new google.maps.DirectionsService();
+  infoWin = new google.maps.InfoWindow();
 
   baseRenderer = new google.maps.DirectionsRenderer({
     map:map, suppressMarkers:true, preserveViewport:true,
@@ -298,24 +296,19 @@ window.initMap = function(){
     });
   });
 
-  // buttons
   document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
-  document.getElementById("setHomeBtn").addEventListener("click", function(){
-    setTarget("home");
-  });
-  document.getElementById("setPlantLocBtn").addEventListener("click", function(){
-    setTarget("adminPlant");
-  });
+  document.getElementById("setHomeBtn").addEventListener("click", function(){ setTarget("home"); });
+  document.getElementById("setPlantLocBtn").addEventListener("click", function(){ setTarget("adminPlant"); });
   document.getElementById("savePlantBtn").addEventListener("click", savePlant);
   document.getElementById("genCodeBtn").addEventListener("click", genDeployCode);
   document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
   document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
-
   document.getElementById("mainPick").addEventListener("change", function(){ pickPlant("main", this.value); });
   document.getElementById("workPick").addEventListener("change", function(){ pickPlant("work", this.value); });
 
   rebuildDatalist();
+  showPlantMarkers();
   restoreSelections();
   refreshMarkers();
   renderHomeRow();
@@ -352,7 +345,7 @@ function reverseGeocode(latLng, cb){
 /* ---------- markers ---------- */
 function circleMarker(loc, color, letter, title){
   return new google.maps.Marker({
-    position:{lat:loc.lat, lng:loc.lng}, map:map, title:title||"",
+    position:{lat:loc.lat, lng:loc.lng}, map:map, title:title||"", zIndex:10,
     label:{text:letter, color:"#fff", fontWeight:"700", fontSize:"12px"},
     icon:{path:google.maps.SymbolPath.CIRCLE, scale:11,
           fillColor:color, fillOpacity:1, strokeColor:"#fff", strokeWeight:2}
@@ -368,21 +361,49 @@ function refreshMarkers(){
   if(mainMarker){mainMarker.setMap(null);mainMarker=null;}
   if(workMarker){workMarker.setMap(null);workMarker=null;}
   if(state.home) homeMarker = circleMarker(state.home, "#3b82f6", "H", "Home");
-  if(state.main) mainMarker = circleMarker(state.main, "#ef4444", "M", "Main: "+state.main.name);
+  if(state.main) mainMarker = circleMarker(state.main, "#ef4444", "B", "Base: "+state.main.name);
   if(state.work) workMarker = circleMarker(state.work, "#22c55e", "V", "Visited: "+state.work.name);
 }
-function showPlantMarkers(show){
+function showPlantMarkers(){
   plantMarkers.forEach(function(m){ m.setMap(null); });
   plantMarkers = [];
-  if(!show) return;
   effectivePlants().forEach(function(p){
     var m = new google.maps.Marker({
-      position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")",
-      icon:{path:google.maps.SymbolPath.CIRCLE, scale:5,
-            fillColor:"#94a3b8", fillOpacity:0.9, strokeColor:"#0f172a", strokeWeight:1}
+      position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")", zIndex:1,
+      icon:{path:google.maps.SymbolPath.CIRCLE, scale:6,
+            fillColor:"#cbd5e1", fillOpacity:0.95, strokeColor:"#0f172a", strokeWeight:1}
     });
+    m.addListener("click", function(){ openPlantInfo(p, m); });
     plantMarkers.push(m);
   });
+}
+function openPlantInfo(p, marker){
+  var div = document.createElement("div");
+  div.style.cssText = "color:#0f172a;font-family:sans-serif;min-width:180px";
+  var head = document.createElement("div");
+  head.style.cssText = "font-weight:700;margin-bottom:2px";
+  head.textContent = p.name;
+  var sub = document.createElement("div");
+  sub.style.cssText = "font-size:12px;color:#555;margin:0 0 8px";
+  sub.textContent = "Approval: " + p.approval;
+  var b1 = document.createElement("button");
+  b1.textContent = "Select as base plant";
+  b1.style.cssText = "cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0";
+  b1.onclick = function(){ selectPlantAs("main", p.approval); };
+  var b2 = document.createElement("button");
+  b2.textContent = "Select as visited plant";
+  b2.style.cssText = "cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e";
+  b2.onclick = function(){ selectPlantAs("work", p.approval); };
+  div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2);
+  infoWin.setContent(div);
+  infoWin.open(map, marker);
+}
+function selectPlantAs(role, approval){
+  var p = plantByApproval(approval);
+  if(!p) return;
+  document.getElementById(role==="main"?"mainPick":"workPick").value = p.approval;
+  pickPlant(role, p.approval);
+  if(infoWin) infoWin.close();
 }
 
 /* ---------- plant selection (user) ---------- */
@@ -428,7 +449,6 @@ function toggleAdmin(){
   document.getElementById("adminView").style.display = state.adminView ? "block" : "none";
   document.getElementById("userView").style.display = state.adminView ? "none" : "block";
   document.getElementById("adminToggle").textContent = state.adminView ? "Done" : "Admin";
-  showPlantMarkers(state.adminView);
   if(!state.adminView){ state.activeTarget = null; if(tmpM){tmpM.setMap(null);tmpM=null;} }
 }
 function savePlant(){
@@ -436,14 +456,12 @@ function savePlant(){
   var approval = document.getElementById("pApproval").value.trim();
   if(!name || !approval){ alert("Enter plant name and approval number."); return; }
   if(!state.tempPlantLoc){ alert("Set the plant location first."); return; }
-  // replace if approval exists in local, else add
   var idx = -1;
   for(var i=0;i<localPlants.length;i++){ if(String(localPlants[i].approval)===approval){ idx=i; break; } }
   var obj = {name:name, approval:approval,
              lat:state.tempPlantLoc.lat, lng:state.tempPlantLoc.lng, address:state.tempPlantLoc.address||""};
   if(idx>=0) localPlants[idx]=obj; else localPlants.push(obj);
   savePlants();
-  // reset form
   document.getElementById("pName").value="";
   document.getElementById("pApproval").value="";
   document.getElementById("pLocInfo").textContent="No location set.";
@@ -451,7 +469,7 @@ function savePlant(){
   state.activeTarget=null;
   rebuildDatalist();
   renderPlantAdminList();
-  showPlantMarkers(true);
+  showPlantMarkers();
 }
 function renderPlantAdminList(){
   var all = effectivePlants();
@@ -472,7 +490,7 @@ function renderPlantAdminList(){
     x.addEventListener("click", function(){
       var ap = x.getAttribute("data-del");
       localPlants = localPlants.filter(function(p){ return String(p.approval)!==ap; });
-      savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers(true);
+      savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers();
     });
   });
 }
@@ -492,7 +510,7 @@ function copyDeployCode(){
 }
 function clearLocal(){
   if(!confirm("Clear plants saved in this browser? Do this only after you have deployed them to GitHub.")) return;
-  localPlants = []; savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers(true);
+  localPlants = []; savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers();
 }
 
 /* ---------- home row ---------- */
@@ -525,8 +543,8 @@ function routeResult(origin, dest){
 
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
-  if(!state.main){ alert("Select the Main plant by approval number."); return; }
-  if(!state.work){ alert("Select the Visited plant by approval number."); return; }
+  if(!state.main){ alert("Select the Base plant by approval number or on the map."); return; }
+  if(!state.work){ alert("Select the Visited plant by approval number or on the map."); return; }
   var trip = parseInt(document.getElementById("tripType").value, 10) || 1;
 
   var resEl = document.getElementById("results");
@@ -558,24 +576,23 @@ function calculate(){
     if(excessMin < 0) excessMin = 0;
 
     var negNote = (excessMiOne < 0) ?
-      '<div class="hint neg">Visited plant is closer to home than the main plant. No claimable excess (0).</div>' : '';
+      '<div class="hint neg">Visited plant is closer to home than the base plant. No claimable excess (0).</div>' : '';
 
     resEl.innerHTML =
-      row("Home -> Main plant (baseline)", baseMi.toFixed(1)+" mi") +
+      row("Home -> Base plant (baseline)", baseMi.toFixed(1)+" mi") +
       row("Home -> Visited plant", workMi.toFixed(1)+" mi") +
       row("Excess distance (one way)", excessMiOne.toFixed(1)+" mi") +
       '<div class="result-line"><b>Claimable mileage</b><span class="big">'+excessMi.toFixed(1)+' mi</span></div>' +
       '<div class="hint">('+(trip===2?"return":"one way")+')</div>' +
       '<div style="height:10px"></div>' +
-      row("Main plant time (baseline)", baseMin.toFixed(0)+" min") +
+      row("Base plant time (baseline)", baseMin.toFixed(0)+" min") +
       row("Visited plant time", workMin.toFixed(0)+" min") +
       row("Claimable travel time", excessMin.toFixed(0)+" min ("+fmtHrs(excessMin)+")") +
       negNote +
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Visited route</span>'+
       '<span><span class="bar" style="background:#ef4444"></span>Baseline route</span></div>' +
-      '<div class="hint">Baseline = your normal home-to-main-plant journey (not claimable). It is deducted from the visited plant distance.</div>';
+      '<div class="hint">Baseline = your normal home-to-base-plant journey (not claimable). It is deducted from the visited plant distance.</div>';
 
-    // fit both routes in view
     var b = new google.maps.LatLngBounds();
     baseRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
     workRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
