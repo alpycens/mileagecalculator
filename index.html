@@ -13,139 +13,187 @@
   *{box-sizing:border-box;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
        background:var(--bg);color:var(--text);}
-  header{padding:14px 18px;background:var(--panel);border-bottom:1px solid var(--line);}
-  header h1{margin:0;font-size:18px;font-weight:600;}
-  header p{margin:4px 0 0;font-size:12px;color:var(--muted);}
-  .wrap{display:grid;grid-template-columns:1fr 360px;gap:0;height:calc(100vh - 60px);}
-  @media(max-width:900px){.wrap{grid-template-columns:1fr;height:auto;}#map{height:55vh;}}
+  header{padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);
+         display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  header h1{margin:0;font-size:17px;font-weight:600;}
+  header p{margin:3px 0 0;font-size:11px;color:var(--muted);}
+  .wrap{display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 62px);}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr;height:auto;}#map{height:52vh;}}
   #map{width:100%;height:100%;background:#0b1220;}
   .side{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:16px;}
   .card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius);
         padding:12px;margin-bottom:14px;}
   .card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
   label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px;}
-  input[type=text],input[type=number]{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);
+  input[type=text],input[type=number],select{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);
         background:var(--bg);color:var(--text);font-size:14px;}
-  input:focus{outline:none;border-color:var(--accent);}
+  input:focus,select:focus{outline:none;border-color:var(--accent);}
   button{cursor:pointer;border:none;border-radius:8px;padding:9px 12px;font-size:13px;font-weight:600;
         color:#fff;background:var(--accent);transition:opacity .15s;}
   button:hover{opacity:.9;}
   button.ghost{background:var(--panel);border:1px solid var(--line);color:var(--text);}
   button.green{background:var(--accent2);}
-  button.wide{width:100%;margin-top:6px;}
-  .loc-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;}
-  .loc-btns button{font-size:12px;padding:8px 4px;}
-  .loc-btns button.active{outline:2px solid #fff;}
-  .home-c{background:#3b82f6;} .main-c{background:#ef4444;} .work-c{background:#22c55e;}
+  button.small{padding:6px 10px;font-size:12px;}
+  button.wide{width:100%;margin-top:8px;}
   .loc-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line);}
   .dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px;}
   .loc-row span.addr{flex:1;color:var(--text);word-break:break-word;}
-  .loc-row .clr{color:var(--muted);cursor:pointer;font-size:11px;}
-  .result-line{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line);}
-  .result-line b{font-weight:600;}
+  .loc-row .clr{color:var(--muted);cursor:pointer;font-size:11px;white-space:nowrap;}
+  .result-line{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line);gap:8px;}
+  .result-line b{font-weight:600;text-align:right;}
   .big{font-size:22px;font-weight:700;color:var(--accent2);}
   .hint{font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;}
   .neg{color:var(--warn);}
-  #searchBox{margin-bottom:8px;}
   .setup{max-width:620px;margin:40px auto;padding:0 16px;}
   .setup .card{background:var(--panel);}
   .setup code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#38bdf8;font-size:12px;}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   a{color:var(--accent);}
   .err{color:var(--danger);font-size:12px;margin-top:6px;}
-  select{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;}
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:6px;flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .bar{width:16px;height:3px;border-radius:2px;display:inline-block;}
+  textarea{width:100%;min-height:120px;padding:9px;border-radius:8px;border:1px solid var(--line);
+        background:var(--bg);color:var(--text);font-size:11px;font-family:monospace;}
+  .plist{max-height:180px;overflow-y:auto;}
+  .badge{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;
+         padding:2px 6px;font-size:11px;color:var(--accent);margin-left:6px;}
 </style>
 </head>
 <body>
 
-<!-- This screen only shows if the key has not been embedded yet (a reminder for you before deploying). Users never see it. -->
 <div id="setup" class="setup" style="display:none;">
   <div class="card">
-    <h2>Setup (one time, owner only)</h2>
+    <h2>Setup (owner only)</h2>
     <p class="hint">
-      <code>GOOGLE_MAPS_API_KEY</code> in the script below is still a placeholder.
-      Paste your own Google Maps API key there and push the file to GitHub.
-      After that, anyone who opens the site uses it without entering anything.
-    </p>
-    <p class="hint">
-      In Google Cloud Console enable: <b>Maps JavaScript API</b>, <b>Directions API</b>, <b>Places API</b>.
-      Restrict the key under <b>Application restrictions -> Websites</b> to your own domain only
-      (e.g. <code>https://alpycens.github.io/*</code>). This way the key is safe even though it is visible in the source.
+      <code>GOOGLE_MAPS_API_KEY</code> in the script is still a placeholder.
+      Paste your own Google Maps API key there (the same one you already created) and push the file to GitHub.
+      Restrict the key under <b>Websites</b> to <code>alpycens.github.io/*</code>.
     </p>
   </div>
 </div>
 
 <div id="app" style="display:none;">
   <header>
-    <h1>Travel Time & Mileage Claim</h1>
-    <p>Excess mileage calculator - Official Veterinarian / Slaughterhouse</p>
+    <div>
+      <h1>Travel Time & Mileage Claim</h1>
+      <p>Excess mileage calculator - Official Veterinarian / Slaughterhouse</p>
+    </div>
+    <button class="ghost small" id="adminToggle">Admin</button>
   </header>
+
   <div class="wrap">
     <div id="map"></div>
     <div class="side">
+
+      <!-- Shared address search (applies to whatever you are setting) -->
       <div class="card">
-        <h2>1. Search / Set Locations</h2>
+        <h2>Address search</h2>
         <input type="text" id="searchBox" placeholder="Search postcode or address...">
-        <div class="loc-btns">
-          <button class="home-c" data-role="home">Home</button>
-          <button class="main-c" data-role="main">Main Plant</button>
-          <button class="work-c" data-role="work">Visited Plant</button>
-        </div>
-        <p class="hint">Pick a button first, then click the map or use the search box. The active button sets that location. Home and main plant are saved and pre-loaded on your next visit.</p>
-        <div id="locList"></div>
+        <p class="hint" id="searchHint">Used when setting Home, or a plant location in Admin. Pick the target first (button below / in Admin).</p>
       </div>
 
-      <div class="card">
-        <h2>2. Settings</h2>
-        <div class="row2">
-          <div>
-            <label>Mileage rate (GBP/mile)</label>
-            <input type="number" id="rate" value="0.45" step="0.01" min="0">
-          </div>
-          <div>
-            <label>Trip type</label>
-            <select id="tripType">
-              <option value="1">One way</option>
-              <option value="2" selected>Return</option>
-            </select>
-          </div>
+      <!-- USER VIEW -->
+      <div id="userView">
+        <div class="card">
+          <h2>Home</h2>
+          <button class="ghost wide" id="setHomeBtn">Set home (search above or click map)</button>
+          <div id="homeRow" style="margin-top:8px;"></div>
         </div>
-        <button class="wide green" id="calcBtn" style="margin-top:12px;">Calculate</button>
+
+        <div class="card">
+          <h2>Journey (by approval number)</h2>
+          <label>Main plant</label>
+          <input type="text" id="mainPick" list="plantList" placeholder="Type approval number...">
+          <div id="mainInfo" class="hint"></div>
+
+          <label style="margin-top:10px;">Visited plant</label>
+          <input type="text" id="workPick" list="plantList" placeholder="Type approval number...">
+          <div id="workInfo" class="hint"></div>
+
+          <label style="margin-top:10px;">Trip type</label>
+          <select id="tripType">
+            <option value="1">One way</option>
+            <option value="2" selected>Return</option>
+          </select>
+
+          <button class="wide green" id="calcBtn" style="margin-top:12px;">Calculate</button>
+        </div>
+
+        <div class="card" id="resultCard" style="display:none;">
+          <h2>Result</h2>
+          <div id="results"></div>
+        </div>
       </div>
 
-      <div class="card" id="resultCard" style="display:none;">
-        <h2>3. Result</h2>
-        <div id="results"></div>
+      <!-- ADMIN VIEW -->
+      <div id="adminView" style="display:none;">
+        <div class="card">
+          <h2>Add / update plant</h2>
+          <label>Plant name</label>
+          <input type="text" id="pName" placeholder="e.g. ABP Shrewsbury">
+          <label>Approval number</label>
+          <input type="text" id="pApproval" placeholder="e.g. 1234">
+          <button class="ghost wide" id="setPlantLocBtn">Set location (search above or click map)</button>
+          <div id="pLocInfo" class="hint">No location set.</div>
+          <button class="green wide" id="savePlantBtn">Save plant</button>
+        </div>
+
+        <div class="card">
+          <h2>Saved plants <span class="badge" id="plantCount">0</span></h2>
+          <div class="plist" id="plantAdminList"></div>
+        </div>
+
+        <div class="card">
+          <h2>Deploy to GitHub (share with everyone)</h2>
+          <p class="hint">Plants you add are saved in <b>your browser only</b>. For everyone to see them, click below, then paste the code over the <code>var SEED_PLANTS = ...;</code> line in the HTML file and push to GitHub.</p>
+          <button class="ghost wide" id="genCodeBtn">Generate deployment code</button>
+          <textarea id="deployCode" style="display:none;margin-top:8px;" readonly></textarea>
+          <button class="ghost wide" id="copyCodeBtn" style="display:none;">Copy</button>
+          <button class="ghost wide" id="clearLocalBtn" style="margin-top:8px;">Clear my local plants (after deploying)</button>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
+
+<datalist id="plantList"></datalist>
 
 <script>
 "use strict";
 
 /* =====================================================================
-   PASTE YOUR OWN GOOGLE MAPS API KEY HERE (one time).
-   The key is always visible client-side; security comes from domain restriction.
-   Google Cloud Console -> Credentials -> API key -> Application restrictions
-   -> Websites -> add https://alpycens.github.io/*
+   PASTE YOUR OWN GOOGLE MAPS API KEY HERE (same key you already made).
+   Restrict it to Websites -> alpycens.github.io/*
    ===================================================================== */
 var GOOGLE_MAPS_API_KEY = "AIzaSyDqwaO3Xcy8D-5MzL5gAxo0RNvflRNogXw";
 /* ===================================================================== */
 
+/* =====================================================================
+   PLANT DATABASE (shared with all users).
+   Add plants in Admin, click "Generate deployment code", and paste the
+   result over this whole line, then push to GitHub.
+   ===================================================================== */
+var SEED_PLANTS = [];
+/* ===================================================================== */
+
 var STORE_KEY = "ov_mileage_v1";
+var PLANTS_KEY = "ov_plants_v1";
 
 var state = {
-  home: null,   // {lat,lng,address}
-  main: null,
-  work: null,
-  activeRole: null
+  home: null,          // {lat,lng,address}
+  main: null,          // plant object
+  work: null,          // plant object
+  activeTarget: null,  // 'home' | 'adminPlant'
+  tempPlantLoc: null,  // {lat,lng,address} while adding a plant
+  adminView: false
 };
 
-var map, geocoder, directionsService, autocomplete;
-var markers = { home:null, main:null, work:null };
-var roleColor = { home:"#3b82f6", main:"#ef4444", work:"#22c55e" };
-var roleLabel = { home:"Home", main:"Main Plant", work:"Visited Plant" };
+var localPlants = [];
+var map, geocoder, directionsService, searchAC;
+var homeMarker=null, mainMarker=null, workMarker=null;
+var plantMarkers = [];
+var baseRenderer=null, workRenderer=null;
 
 /* ---------- persistence ---------- */
 function loadState(){
@@ -154,15 +202,38 @@ function loadState(){
     if(raw){
       var d = JSON.parse(raw);
       state.home = d.home || null;
-      state.main = d.main || null;
-      state.work = d.work || null;
+      state._mainApproval = d.mainApproval || null;
+      state._workApproval = d.workApproval || null;
     }
   }catch(e){}
 }
 function saveState(){
   try{
-    localStorage.setItem(STORE_KEY, JSON.stringify({home:state.home,main:state.main,work:state.work}));
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      home: state.home,
+      mainApproval: state.main ? state.main.approval : null,
+      workApproval: state.work ? state.work.approval : null
+    }));
   }catch(e){}
+}
+function loadPlants(){
+  try{ localPlants = JSON.parse(localStorage.getItem(PLANTS_KEY) || "[]"); }
+  catch(e){ localPlants = []; }
+}
+function savePlants(){
+  try{ localStorage.setItem(PLANTS_KEY, JSON.stringify(localPlants)); }catch(e){}
+}
+function effectivePlants(){
+  var m = {};
+  (SEED_PLANTS||[]).forEach(function(p){ m[String(p.approval)] = p; });
+  localPlants.forEach(function(p){ m[String(p.approval)] = p; });
+  return Object.keys(m).map(function(k){ return m[k]; });
+}
+function plantByApproval(num){
+  num = String(num).trim();
+  var all = effectivePlants();
+  for(var i=0;i<all.length;i++){ if(String(all[i].approval).trim() === num) return all[i]; }
+  return null;
 }
 
 /* ---------- bootstrap ---------- */
@@ -175,22 +246,21 @@ function boot(){
   s.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(GOOGLE_MAPS_API_KEY) +
           "&libraries=places&callback=initMap&v=weekly";
   s.async = true;
-  s.onerror = function(){
-    document.getElementById("setup").style.display = "block";
-  };
+  s.onerror = function(){ document.getElementById("setup").style.display = "block"; };
   document.head.appendChild(s);
 }
 
 /* ---------- map init ---------- */
 window.initMap = function(){
   loadState();
+  loadPlants();
   document.getElementById("app").style.display = "block";
 
-  var center = {lat:52.9226, lng:-1.4746}; // Derby default
+  var center = {lat:52.9226, lng:-1.4746};
   if(state.home) center = {lat:state.home.lat, lng:state.home.lng};
 
   map = new google.maps.Map(document.getElementById("map"), {
-    center: center, zoom: 10, mapTypeControl:false, streetViewControl:false,
+    center: center, zoom: 9, mapTypeControl:false, streetViewControl:false,
     styles:[{elementType:"geometry",stylers:[{color:"#1e293b"}]},
             {elementType:"labels.text.fill",stylers:[{color:"#94a3b8"}]},
             {elementType:"labels.text.stroke",stylers:[{color:"#0f172a"}]},
@@ -201,39 +271,76 @@ window.initMap = function(){
   geocoder = new google.maps.Geocoder();
   directionsService = new google.maps.DirectionsService();
 
-  autocomplete = new google.maps.places.Autocomplete(document.getElementById("searchBox"),
-    {componentRestrictions:{country:"gb"}, fields:["geometry","formatted_address"]});
-  autocomplete.addListener("place_changed", function(){
-    var p = autocomplete.getPlace();
+  baseRenderer = new google.maps.DirectionsRenderer({
+    map:map, suppressMarkers:true, preserveViewport:true,
+    polylineOptions:{strokeColor:"#ef4444", strokeWeight:4, strokeOpacity:0.6}});
+  workRenderer = new google.maps.DirectionsRenderer({
+    map:map, suppressMarkers:true, preserveViewport:true,
+    polylineOptions:{strokeColor:"#22c55e", strokeWeight:5, strokeOpacity:0.9}});
+
+  searchAC = new google.maps.places.Autocomplete(document.getElementById("searchBox"),
+    {componentRestrictions:{country:"gb"}, fields:["geometry","formatted_address","name"]});
+  searchAC.addListener("place_changed", function(){
+    var p = searchAC.getPlace();
     if(!p.geometry){ return; }
     var loc = {lat:p.geometry.location.lat(), lng:p.geometry.location.lng(),
-               address:p.formatted_address || ""};
-    setRoleLocation(loc);
+               address:p.formatted_address || p.name || ""};
+    applyLocation(loc);
     map.panTo(p.geometry.location);
     map.setZoom(13);
+    document.getElementById("searchBox").value = "";
   });
 
   map.addListener("click", function(e){
-    if(!state.activeRole){ return; }
+    if(!state.activeTarget){ return; }
     reverseGeocode(e.latLng, function(addr){
-      setRoleLocation({lat:e.latLng.lat(), lng:e.latLng.lng(), address:addr});
+      applyLocation({lat:e.latLng.lat(), lng:e.latLng.lng(), address:addr});
     });
   });
 
-  var btns = document.querySelectorAll(".loc-btns button");
-  btns.forEach(function(b){
-    b.addEventListener("click", function(){
-      state.activeRole = b.getAttribute("data-role");
-      btns.forEach(function(x){x.classList.remove("active");});
-      b.classList.add("active");
-    });
+  // buttons
+  document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
+  document.getElementById("setHomeBtn").addEventListener("click", function(){
+    setTarget("home");
   });
-
+  document.getElementById("setPlantLocBtn").addEventListener("click", function(){
+    setTarget("adminPlant");
+  });
+  document.getElementById("savePlantBtn").addEventListener("click", savePlant);
+  document.getElementById("genCodeBtn").addEventListener("click", genDeployCode);
+  document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
+  document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
 
+  document.getElementById("mainPick").addEventListener("change", function(){ pickPlant("main", this.value); });
+  document.getElementById("workPick").addEventListener("change", function(){ pickPlant("work", this.value); });
+
+  rebuildDatalist();
+  restoreSelections();
   refreshMarkers();
-  renderLocList();
+  renderHomeRow();
+  renderPlantAdminList();
 };
+
+function setTarget(t){
+  state.activeTarget = t;
+  var hint = document.getElementById("searchHint");
+  if(t==="home") hint.textContent = "Now setting HOME. Search above or click the map.";
+  else if(t==="adminPlant") hint.textContent = "Now setting the new PLANT location. Search above or click the map.";
+  document.getElementById("searchBox").focus();
+}
+
+function applyLocation(loc){
+  if(state.activeTarget === "home"){
+    state.home = loc; saveState(); refreshMarkers(); renderHomeRow();
+  }else if(state.activeTarget === "adminPlant"){
+    state.tempPlantLoc = loc;
+    document.getElementById("pLocInfo").textContent = "Location: " + (loc.address || (loc.lat.toFixed(4)+", "+loc.lng.toFixed(4)));
+    tempMarker(loc);
+  }else{
+    alert("Pick a target first: Set home, or Set plant location in Admin.");
+  }
+}
 
 function reverseGeocode(latLng, cb){
   geocoder.geocode({location:latLng}, function(res, status){
@@ -242,77 +349,184 @@ function reverseGeocode(latLng, cb){
   });
 }
 
-function setRoleLocation(loc){
-  var role = state.activeRole;
-  if(!role){ alert("Pick Home / Main Plant / Visited Plant first."); return; }
-  state[role] = loc;
-  saveState();
-  refreshMarkers();
-  renderLocList();
+/* ---------- markers ---------- */
+function circleMarker(loc, color, letter, title){
+  return new google.maps.Marker({
+    position:{lat:loc.lat, lng:loc.lng}, map:map, title:title||"",
+    label:{text:letter, color:"#fff", fontWeight:"700", fontSize:"12px"},
+    icon:{path:google.maps.SymbolPath.CIRCLE, scale:11,
+          fillColor:color, fillOpacity:1, strokeColor:"#fff", strokeWeight:2}
+  });
 }
-
+var tmpM=null;
+function tempMarker(loc){
+  if(tmpM) tmpM.setMap(null);
+  tmpM = circleMarker(loc, "#f59e0b", "P", "New plant location");
+}
 function refreshMarkers(){
-  ["home","main","work"].forEach(function(role){
-    if(markers[role]){ markers[role].setMap(null); markers[role]=null; }
-    if(state[role]){
-      markers[role] = new google.maps.Marker({
-        position:{lat:state[role].lat, lng:state[role].lng},
-        map:map, title:roleLabel[role],
-        label:{text:roleLabel[role].charAt(0), color:"#fff", fontWeight:"700"},
-        icon:{path:google.maps.SymbolPath.CIRCLE, scale:11,
-              fillColor:roleColor[role], fillOpacity:1, strokeColor:"#fff", strokeWeight:2}
-      });
-    }
+  if(homeMarker){homeMarker.setMap(null);homeMarker=null;}
+  if(mainMarker){mainMarker.setMap(null);mainMarker=null;}
+  if(workMarker){workMarker.setMap(null);workMarker=null;}
+  if(state.home) homeMarker = circleMarker(state.home, "#3b82f6", "H", "Home");
+  if(state.main) mainMarker = circleMarker(state.main, "#ef4444", "M", "Main: "+state.main.name);
+  if(state.work) workMarker = circleMarker(state.work, "#22c55e", "V", "Visited: "+state.work.name);
+}
+function showPlantMarkers(show){
+  plantMarkers.forEach(function(m){ m.setMap(null); });
+  plantMarkers = [];
+  if(!show) return;
+  effectivePlants().forEach(function(p){
+    var m = new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")",
+      icon:{path:google.maps.SymbolPath.CIRCLE, scale:5,
+            fillColor:"#94a3b8", fillOpacity:0.9, strokeColor:"#0f172a", strokeWeight:1}
+    });
+    plantMarkers.push(m);
   });
 }
 
-function renderLocList(){
-  var el = document.getElementById("locList");
+/* ---------- plant selection (user) ---------- */
+function rebuildDatalist(){
+  var dl = document.getElementById("plantList");
+  dl.innerHTML = "";
+  effectivePlants().forEach(function(p){
+    var o = document.createElement("option");
+    o.value = String(p.approval);
+    o.label = p.name + " (" + p.approval + ")";
+    dl.appendChild(o);
+  });
+}
+function pickPlant(role, val){
+  var p = plantByApproval(val);
+  var infoEl = document.getElementById(role==="main"?"mainInfo":"workInfo");
+  if(!p){
+    infoEl.textContent = "No plant with that approval number.";
+    infoEl.classList.add("neg");
+    return;
+  }
+  infoEl.classList.remove("neg");
+  infoEl.textContent = p.name + "  -  " + (p.address || (p.lat.toFixed(4)+", "+p.lng.toFixed(4)));
+  state[role] = p;
+  saveState();
+  refreshMarkers();
+  if(map) map.panTo({lat:p.lat,lng:p.lng});
+}
+function restoreSelections(){
+  if(state._mainApproval){
+    var pm = plantByApproval(state._mainApproval);
+    if(pm){ document.getElementById("mainPick").value = pm.approval; pickPlant("main", pm.approval); }
+  }
+  if(state._workApproval){
+    var pw = plantByApproval(state._workApproval);
+    if(pw){ document.getElementById("workPick").value = pw.approval; pickPlant("work", pw.approval); }
+  }
+}
+
+/* ---------- admin ---------- */
+function toggleAdmin(){
+  state.adminView = !state.adminView;
+  document.getElementById("adminView").style.display = state.adminView ? "block" : "none";
+  document.getElementById("userView").style.display = state.adminView ? "none" : "block";
+  document.getElementById("adminToggle").textContent = state.adminView ? "Done" : "Admin";
+  showPlantMarkers(state.adminView);
+  if(!state.adminView){ state.activeTarget = null; if(tmpM){tmpM.setMap(null);tmpM=null;} }
+}
+function savePlant(){
+  var name = document.getElementById("pName").value.trim();
+  var approval = document.getElementById("pApproval").value.trim();
+  if(!name || !approval){ alert("Enter plant name and approval number."); return; }
+  if(!state.tempPlantLoc){ alert("Set the plant location first."); return; }
+  // replace if approval exists in local, else add
+  var idx = -1;
+  for(var i=0;i<localPlants.length;i++){ if(String(localPlants[i].approval)===approval){ idx=i; break; } }
+  var obj = {name:name, approval:approval,
+             lat:state.tempPlantLoc.lat, lng:state.tempPlantLoc.lng, address:state.tempPlantLoc.address||""};
+  if(idx>=0) localPlants[idx]=obj; else localPlants.push(obj);
+  savePlants();
+  // reset form
+  document.getElementById("pName").value="";
+  document.getElementById("pApproval").value="";
+  document.getElementById("pLocInfo").textContent="No location set.";
+  state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;}
+  state.activeTarget=null;
+  rebuildDatalist();
+  renderPlantAdminList();
+  showPlantMarkers(true);
+}
+function renderPlantAdminList(){
+  var all = effectivePlants();
+  document.getElementById("plantCount").textContent = all.length;
+  var el = document.getElementById("plantAdminList");
+  if(all.length===0){ el.innerHTML = '<p class="hint">No plants yet.</p>'; return; }
   var html = "";
-  ["home","main","work"].forEach(function(role){
-    var loc = state[role];
+  all.forEach(function(p){
+    var isLocal = localPlants.some(function(x){ return String(x.approval)===String(p.approval); });
     html += '<div class="loc-row">'+
-      '<span class="dot" style="background:'+roleColor[role]+'"></span>'+
-      '<span class="addr">'+roleLabel[role]+': '+(loc?escapeHtml(loc.address||(loc.lat.toFixed(4)+", "+loc.lng.toFixed(4))):'<i style="color:#64748b">not set</i>')+'</span>'+
-      (loc?'<span class="clr" data-clr="'+role+'">clear</span>':'')+
+      '<span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+
+      (isLocal?'':' <span class="badge">deployed</span>')+'</span>'+
+      (isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'">delete</span>':'')+
       '</div>';
   });
   el.innerHTML = html;
   el.querySelectorAll(".clr").forEach(function(x){
     x.addEventListener("click", function(){
-      var r = x.getAttribute("data-clr");
-      state[r] = null; saveState(); refreshMarkers(); renderLocList();
+      var ap = x.getAttribute("data-del");
+      localPlants = localPlants.filter(function(p){ return String(p.approval)!==ap; });
+      savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers(true);
     });
   });
+}
+function genDeployCode(){
+  var all = effectivePlants();
+  var code = "var SEED_PLANTS = " + JSON.stringify(all) + ";";
+  var ta = document.getElementById("deployCode");
+  ta.style.display="block"; ta.value = code;
+  document.getElementById("copyCodeBtn").style.display="block";
+}
+function copyDeployCode(){
+  var ta = document.getElementById("deployCode");
+  ta.select();
+  try{ document.execCommand("copy"); document.getElementById("copyCodeBtn").textContent="Copied"; }
+  catch(e){ alert("Copy manually from the box."); }
+  setTimeout(function(){ document.getElementById("copyCodeBtn").textContent="Copy"; }, 1500);
+}
+function clearLocal(){
+  if(!confirm("Clear plants saved in this browser? Do this only after you have deployed them to GitHub.")) return;
+  localPlants = []; savePlants(); rebuildDatalist(); renderPlantAdminList(); showPlantMarkers(true);
+}
+
+/* ---------- home row ---------- */
+function renderHomeRow(){
+  var el = document.getElementById("homeRow");
+  if(!state.home){ el.innerHTML = '<p class="hint">Home not set.</p>'; return; }
+  el.innerHTML = '<div class="loc-row"><span class="dot" style="background:#3b82f6"></span>'+
+    '<span class="addr">'+escapeHtml(state.home.address || (state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)))+'</span>'+
+    '<span class="clr" id="clrHome">clear</span></div>';
+  var c = document.getElementById("clrHome");
+  if(c) c.addEventListener("click", function(){ state.home=null; saveState(); refreshMarkers(); renderHomeRow(); });
 }
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 
-/* ---------- calculation ---------- */
-function routeDistance(origin, dest){
+/* ---------- calculation + route drawing ---------- */
+function routeResult(origin, dest){
   return new Promise(function(resolve, reject){
     directionsService.route({
       origin:{lat:origin.lat,lng:origin.lng},
       destination:{lat:dest.lat,lng:dest.lng},
       travelMode: google.maps.TravelMode.DRIVING
     }, function(res, status){
-      if(status === "OK" && res.routes[0]){
-        var leg = res.routes[0].legs[0];
-        resolve({meters:leg.distance.value, seconds:leg.duration.value});
-      }else{
-        reject(new Error("Route not found: "+status));
-      }
+      if(status === "OK" && res.routes[0]){ resolve(res); }
+      else{ reject(new Error("Route not found: "+status)); }
     });
   });
 }
 
 function calculate(){
-  if(!state.home || !state.main || !state.work){
-    alert("You must set all three: Home, Main Plant and Visited Plant.");
-    return;
-  }
-  var rate = parseFloat(document.getElementById("rate").value) || 0;
+  if(!state.home){ alert("Set Home first."); return; }
+  if(!state.main){ alert("Select the Main plant by approval number."); return; }
+  if(!state.work){ alert("Select the Visited plant by approval number."); return; }
   var trip = parseInt(document.getElementById("tripType").value, 10) || 1;
 
   var resEl = document.getElementById("results");
@@ -320,25 +534,29 @@ function calculate(){
   resEl.innerHTML = "Calculating...";
 
   Promise.all([
-    routeDistance(state.home, state.main),
-    routeDistance(state.home, state.work)
+    routeResult(state.home, state.main),
+    routeResult(state.home, state.work)
   ]).then(function(r){
-    var base = r[0], work = r[1];
+    var baseRes = r[0], workRes = r[1];
+    baseRenderer.setDirections(baseRes);
+    workRenderer.setDirections(workRes);
+
+    var baseLeg = baseRes.routes[0].legs[0];
+    var workLeg = workRes.routes[0].legs[0];
     var MI = 1609.344;
 
-    var baseMi = base.meters / MI;
-    var workMi = work.meters / MI;
+    var baseMi = baseLeg.distance.value / MI;
+    var workMi = workLeg.distance.value / MI;
     var excessMiOne = workMi - baseMi;
     var excessMi = excessMiOne * trip;
     if(excessMi < 0) excessMi = 0;
 
-    var baseMin = base.seconds/60;
-    var workMin = work.seconds/60;
+    var baseMin = baseLeg.duration.value/60;
+    var workMin = workLeg.duration.value/60;
     var excessMinOne = workMin - baseMin;
     var excessMin = excessMinOne * trip;
     if(excessMin < 0) excessMin = 0;
 
-    var claim = excessMi * rate;
     var negNote = (excessMiOne < 0) ?
       '<div class="hint neg">Visited plant is closer to home than the main plant. No claimable excess (0).</div>' : '';
 
@@ -346,15 +564,22 @@ function calculate(){
       row("Home -> Main plant (baseline)", baseMi.toFixed(1)+" mi") +
       row("Home -> Visited plant", workMi.toFixed(1)+" mi") +
       row("Excess distance (one way)", excessMiOne.toFixed(1)+" mi") +
-      row("Claimable mileage", excessMi.toFixed(1)+" mi ("+(trip===2?"return":"one way")+")") +
-      '<div style="height:8px"></div>' +
+      '<div class="result-line"><b>Claimable mileage</b><span class="big">'+excessMi.toFixed(1)+' mi</span></div>' +
+      '<div class="hint">('+(trip===2?"return":"one way")+')</div>' +
+      '<div style="height:10px"></div>' +
       row("Main plant time (baseline)", baseMin.toFixed(0)+" min") +
       row("Visited plant time", workMin.toFixed(0)+" min") +
       row("Claimable travel time", excessMin.toFixed(0)+" min ("+fmtHrs(excessMin)+")") +
-      '<div style="height:12px"></div>' +
-      '<div class="result-line"><b>Mileage claim amount</b><span class="big">GBP '+claim.toFixed(2)+'</span></div>' +
       negNote +
+      '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Visited route</span>'+
+      '<span><span class="bar" style="background:#ef4444"></span>Baseline route</span></div>' +
       '<div class="hint">Baseline = your normal home-to-main-plant journey (not claimable). It is deducted from the visited plant distance.</div>';
+
+    // fit both routes in view
+    var b = new google.maps.LatLngBounds();
+    baseRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
+    workRes.routes[0].overview_path.forEach(function(pt){ b.extend(pt); });
+    map.fitBounds(b);
   }).catch(function(err){
     resEl.innerHTML = '<div class="err">'+escapeHtml(err.message)+'</div>';
   });
