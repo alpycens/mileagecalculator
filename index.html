@@ -26,8 +26,11 @@
   @media(max-width:900px){ .wrap{display:flex;flex-direction:column;height:auto;} .side{order:0;border-left:none;border-bottom:1px solid var(--line);} #map{order:1;height:58vh;} }
   #map{width:100%;height:100%;background:#0b1220;}
   .side{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:16px;}
-  .card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:14px;}
-  .card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 1px 2px rgba(15,23,42,.05),0 4px 14px rgba(15,23,42,.05);}
+  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+  .card h2::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 9px;}
+  .card.c-home h2::before{background:#3b82f6;}
+  .card.c-journey h2::before{background:var(--accent2);}
   label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px;}
   input[type=text],input[type=number],select{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;}
   input:focus,select:focus{outline:none;border-color:var(--accent);}
@@ -60,17 +63,27 @@
   .combo-item:last-child{border-bottom:none;} .combo-item:hover{background:var(--panel2);}
   .combo-item small{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
   .checkrow{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;} .checkrow input{width:auto;}
-  .stop-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:13px;}
-  .stop-num{width:24px;height:24px;border-radius:50%;background:var(--accent2);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 24px;}
+  .stop-item{display:flex;align-items:center;gap:11px;background:rgba(34,197,94,.09);border:1.5px solid rgba(34,197,94,.55);border-radius:12px;padding:11px 12px;margin-bottom:8px;font-size:14px;}
+  .stop-num{width:26px;height:26px;border-radius:50%;background:var(--accent2);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 26px;box-shadow:0 0 0 3px rgba(34,197,94,.18);}
   .stop-item .addr{flex:1;word-break:break-word;}
   .stop-item .clr{color:var(--muted);cursor:pointer;font-size:14px;padding:0 3px;} .stop-item .clr:hover{color:var(--danger);}
   .addstop{border:1px dashed var(--line);color:var(--accent);font-size:14px;} .addstop:hover{border-color:var(--accent);}
   .combo input, #homeSearch{cursor:pointer;}
   .combo input:focus, #homeSearch:focus{cursor:text;}
-  .home-set{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--accent);border-radius:10px;padding:11px 12px;margin-bottom:10px;}
-  .home-set .dot{width:14px;height:14px;border-radius:50%;background:#3b82f6;flex:0 0 14px;box-shadow:0 0 0 3px rgba(59,130,246,.25);}
-  .home-set .addr{flex:1;font-size:14px;font-weight:600;color:var(--text);word-break:break-word;line-height:1.35;}
+  .home-set{display:flex;align-items:center;gap:11px;background:rgba(59,130,246,.10);border:1.5px solid #3b82f6;border-radius:12px;padding:13px 14px;margin-bottom:10px;}
+  .home-set .dot{width:15px;height:15px;border-radius:50%;background:#3b82f6;flex:0 0 15px;box-shadow:0 0 0 4px rgba(59,130,246,.22);}
+  .home-set .addr{flex:1;font-size:15px;font-weight:700;color:var(--text);word-break:break-word;line-height:1.35;}
   .home-set .clr{color:var(--muted);cursor:pointer;font-size:14px;padding:0 3px;} .home-set .clr:hover{color:var(--danger);}
+  .base-set{display:flex;align-items:center;gap:11px;background:rgba(239,68,68,.10);border:1.5px solid var(--danger);border-radius:12px;padding:13px 14px;margin-top:6px;}
+  .base-set .dot{width:15px;height:15px;border-radius:50%;background:#ef4444;flex:0 0 15px;box-shadow:0 0 0 4px rgba(239,68,68,.20);}
+  .base-set .addr{flex:1;font-size:15px;font-weight:700;color:var(--text);word-break:break-word;line-height:1.35;}
+  .base-set .addr .rsub{font-weight:500;}
+  .base-set .clr{color:var(--muted);cursor:pointer;font-size:15px;padding:0 3px;} .base-set .clr:hover{color:var(--danger);}
+  .maptype-ctrl{display:flex;margin:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.28);}
+  .maptype-ctrl button{background:transparent;color:var(--text);font-size:12px;font-weight:600;padding:8px 13px;border-radius:0;}
+  .maptype-ctrl button:hover{opacity:1;background:rgba(148,163,184,.15);}
+  .maptype-ctrl button.active{background:var(--accent);color:#fff;}
+  .maptype-ctrl button+button{border-left:1px solid var(--line);}
 </style>
 </head>
 <body>
@@ -97,14 +110,14 @@
     <div class="side">
 
       <div id="userView">
-        <div class="card">
+        <div class="card c-home">
           <h2>Home</h2>
           <div id="homeRow"></div>
           <input type="text" id="homeSearch" autocomplete="off" placeholder="Type your postcode or address, then pick a suggestion">
           <p class="hint">Set once - it stays saved. You can also click anywhere on the map to set it.</p>
         </div>
 
-        <div class="card">
+        <div class="card c-journey">
           <h2>Journey</h2>
           <label>Base plant (your normal commute)</label>
           <div class="combo">
@@ -278,11 +291,11 @@ window.initMap=function(){
   if(state.home) center={lat:state.home.lat,lng:state.home.lng};
 
   map=new google.maps.Map(document.getElementById("map"),{
-    center:center, zoom:9, streetViewControl:false,
-    mapTypeControl:true,
-    mapTypeControlOptions:{ style:google.maps.MapTypeControlStyle.DROPDOWN_MENU, position:google.maps.ControlPosition.TOP_RIGHT, mapTypeIds:["roadmap","terrain","satellite","hybrid"] },
+    center:center, zoom:9, streetViewControl:false, mapTypeId:"roadmap",
+    mapTypeControl:false,
     styles: theme==="light"?LIGHT_STYLES:DARK_STYLES
   });
+  buildMapTypeControl();
   geocoder=new google.maps.Geocoder();
   directionsService=new google.maps.DirectionsService();
   infoWin=new google.maps.InfoWindow();
@@ -316,6 +329,19 @@ window.initMap=function(){
   showPlantMarkers(); restoreSelections(); refreshMarkers();
   renderHomeRow(); renderBaseSel(); renderStops(); renderPlantAdminList();
 };
+
+function buildMapTypeControl(){
+  var wrap=document.createElement("div"); wrap.className="maptype-ctrl";
+  var types=[["roadmap","Map"],["satellite","Satellite"],["terrain","Terrain"],["hybrid","Hybrid"]];
+  types.forEach(function(t){
+    var b=document.createElement("button"); b.type="button"; b.textContent=t[1]; b.setAttribute("data-mt",t[0]);
+    b.addEventListener("click",function(){ map.setMapTypeId(t[0]); });
+    wrap.appendChild(b);
+  });
+  function sync(){ var cur=map.getMapTypeId()||"roadmap"; wrap.querySelectorAll("button").forEach(function(x){ x.classList.toggle("active", x.getAttribute("data-mt")===cur); }); }
+  map.addListener("maptypeid_changed", sync); sync();
+  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(wrap);
+}
 
 function attachSearch(inputId, onPick){
   var input=document.getElementById(inputId);
@@ -424,7 +450,7 @@ function renderBaseSel(){
   var el=document.getElementById("baseSel");
   if(!state.base){ el.innerHTML='<p class="hint">No base plant selected.</p>'; return; }
   var pc=ukPostcode(state.base.address);
-  el.innerHTML='<div class="loc-row"><span class="dot" style="background:#ef4444"></span><span class="addr"><b>'+escapeHtml(state.base.approval)+'</b> - '+escapeHtml(state.base.name)+(pc?' <span class="rsub">'+escapeHtml(pc)+'</span>':'')+'</span><span class="clr" id="clrBase" title="Remove">&#10005;</span></div>';
+  el.innerHTML='<div class="base-set"><span class="dot"></span><span class="addr"><b>'+escapeHtml(state.base.approval)+'</b> - '+escapeHtml(state.base.name)+(pc?'<div class="rsub">'+escapeHtml(pc)+'</div>':'')+'</span><span class="clr" id="clrBase" title="Remove">&#10005;</span></div>';
   var c=document.getElementById("clrBase"); if(c) c.addEventListener("click", clearBase);
 }
 function addStop(ap){ var p=plantByApproval(ap); if(!p) return; state.stops.push(p); saveState(); renderStops(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); hideStopPicker(); }
