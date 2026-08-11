@@ -65,6 +65,12 @@
   .stop-item .addr{flex:1;word-break:break-word;}
   .stop-item .clr{color:var(--muted);cursor:pointer;font-size:14px;padding:0 3px;} .stop-item .clr:hover{color:var(--danger);}
   .addstop{border:1px dashed var(--line);color:var(--accent);font-size:14px;} .addstop:hover{border-color:var(--accent);}
+  .combo input, #homeSearch{cursor:pointer;}
+  .combo input:focus, #homeSearch:focus{cursor:text;}
+  .home-set{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--accent);border-radius:10px;padding:11px 12px;margin-bottom:10px;}
+  .home-set .dot{width:14px;height:14px;border-radius:50%;background:#3b82f6;flex:0 0 14px;box-shadow:0 0 0 3px rgba(59,130,246,.25);}
+  .home-set .addr{flex:1;font-size:14px;font-weight:600;color:var(--text);word-break:break-word;line-height:1.35;}
+  .home-set .clr{color:var(--muted);cursor:pointer;font-size:14px;padding:0 3px;} .home-set .clr:hover{color:var(--danger);}
 </style>
 </head>
 <body>
@@ -480,7 +486,7 @@ function clearLocal(){ if(!confirm("Clear plants saved in this browser? Do this 
 function renderHomeRow(){
   var el=document.getElementById("homeRow");
   if(!state.home){ el.innerHTML='<p class="hint">Home not set.</p>'; return; }
-  el.innerHTML='<div class="loc-row"><span class="dot" style="background:#3b82f6"></span><span class="addr">'+escapeHtml(state.home.address||(state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)))+'</span><span class="clr" id="clrHome" title="Remove">&#10005;</span></div>';
+  el.innerHTML='<div class="home-set"><span class="dot"></span><span class="addr">'+escapeHtml(state.home.address||(state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)))+'</span><span class="clr" id="clrHome" title="Remove">&#10005;</span></div>';
   var c=document.getElementById("clrHome"); if(c) c.addEventListener("click", function(){ state.home=null; saveState(); refreshMarkers(); renderHomeRow(); });
 }
 
