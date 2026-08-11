@@ -23,13 +23,12 @@
   .iconbtn svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .iconbtn.active{border-color:var(--accent);} .iconbtn.active svg{stroke:var(--accent);}
   .wrap{position:relative;height:calc(100vh - 52px);}
-  @media(max-width:900px){ .side{top:8px;left:8px;right:8px;width:auto;max-width:none;max-height:calc(100% - 16px);} }
+  @media(max-width:900px){ .side{top:8px;left:8px;right:8px;transform:none;width:auto;max-width:none;max-height:calc(100% - 16px);} .card{width:100%;} }
   #map{position:absolute;inset:0;width:100%;height:100%;background:#0b1220;}
-  .side{position:absolute;top:12px;left:12px;width:330px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);overflow-y:auto;z-index:500;background:rgba(30,41,59,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:12px;}
+  .side{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);max-height:calc(100% - 24px);overflow-y:auto;z-index:500;background:rgba(30,41,59,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:12px 14px;}
   body.light .side{background:rgba(255,255,255,.94);}
-  #userView,#adminView{display:block;}
-  .card{background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;padding:10px 0;margin:0;width:auto;max-width:none;}
-  #userView>.card:last-child,#adminView>.card:last-child{border-bottom:none;}
+  #userView,#adminView{display:flex;flex-direction:row;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:center;}
+  .card{background:transparent;border:none;border-radius:0;padding:0;margin:0;width:280px;max-width:100%;}
   .card h2{margin:0 0 8px;font-size:11px;}
   .card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
   label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px;}
@@ -110,9 +109,11 @@
 
         <div class="card">
           <h2>Journey</h2>
-          <label>Base plant (your normal commute)</label>
-          <div class="combo">
-            <input type="text" id="basePick" autocomplete="off" placeholder="Click to choose or type approval number...">
+          <label>Base place (your normal commute)</label>
+          <input type="text" id="baseSearch" autocomplete="off" placeholder="Postcode or address...">
+          <button class="ghost small wide" id="basePlantBtn" style="margin-top:6px;">Or pick a plant</button>
+          <div class="combo" id="baseComboWrap" style="display:none;margin-top:6px;">
+            <input type="text" id="basePick" autocomplete="off" placeholder="Type approval number...">
             <span class="combo-caret">&#9662;</span>
             <div class="combo-list" id="baseList"></div>
           </div>
@@ -206,11 +207,11 @@ var LIGHT_STYLES=[{featureType:"poi",stylers:[{visibility:"off"}]}];
 /* ---------- persistence ---------- */
 function loadState(){
   try{ var d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");
-    if(d){ state.home=d.home||null; state._baseApproval=d.baseApproval||null; state._stopApprovals=d.stopApprovals||[]; state._returnHome=(d.returnHome!==false); } }catch(e){}
+    if(d){ state.home=d.home||null; state.base=d.base||null; state._stopApprovals=d.stopApprovals||[]; state._returnHome=(d.returnHome!==false); } }catch(e){}
 }
 function saveState(){
   try{ localStorage.setItem(STORE_KEY, JSON.stringify({
-    home:state.home, baseApproval:state.base?state.base.approval:null,
+    home:state.home, base:state.base,
     stopApprovals:state.stops.map(function(p){return p.approval;}), returnHome:document.getElementById("returnHome").checked
   })); }catch(e){}
 }
@@ -314,7 +315,9 @@ window.initMap=function(){
   document.getElementById("returnHome").addEventListener("change", saveState);
   document.getElementById("addStopBtn").addEventListener("click", showStopPicker);
 
-  setupCombobox("basePick","baseList",{ onPick:pickBase, clearAfter:false, autoType:true });
+  setupCombobox("basePick","baseList",{ onPick:pickBasePlant, clearAfter:false, autoType:true });
+  attachSearch("baseSearch", setBasePlace);
+  document.getElementById("basePlantBtn").addEventListener("click", showBasePicker);
   setupCombobox("stopPick","stopList",{ onPick:addStop, clearAfter:true, autoType:false });
 
   showPlantMarkers(); restoreSelections(); refreshMarkers();
@@ -390,7 +393,7 @@ function openPlantInfo(p, marker){
   var sub=document.createElement("div"); sub.style.cssText="font-size:12px;color:#555;margin:0 0 8px"; sub.textContent="Approval: "+p.approval;
   var b1=document.createElement("button"); b1.textContent="Set as base plant";
   b1.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0";
-  b1.onclick=function(){ document.getElementById("basePick").value=p.approval; pickBase(p.approval); if(infoWin) infoWin.close(); };
+  b1.onclick=function(){ pickBasePlant(p.approval); if(infoWin) infoWin.close(); };
   var b2=document.createElement("button"); b2.textContent="Add as stop";
   b2.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e";
   b2.onclick=function(){ addStop(p.approval); if(infoWin) infoWin.close(); };
@@ -422,13 +425,17 @@ function setupCombobox(inputId, listId, opts){
 }
 
 /* ---------- base + stops ---------- */
-function pickBase(ap){ var p=plantByApproval(ap); if(!p) return; state.base=p; saveState(); renderBaseSel(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); }
-function clearBase(){ state.base=null; document.getElementById("basePick").value=""; saveState(); renderBaseSel(); refreshMarkers(); }
+function pickBasePlant(ap){ var p=plantByApproval(ap); if(!p) return; state.base=p; saveState(); renderBaseSel(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); hideBasePicker(); }
+function setBasePlace(loc){ state.base={name:(loc.address||("Custom: "+loc.lat.toFixed(4)+", "+loc.lng.toFixed(4))), approval:"", lat:loc.lat, lng:loc.lng, address:loc.address||""}; saveState(); renderBaseSel(); refreshMarkers(); hideBasePicker(); }
+function showBasePicker(){ document.getElementById("baseComboWrap").style.display="block"; var i=document.getElementById("basePick"); i.value=""; i.focus(); }
+function hideBasePicker(){ document.getElementById("baseComboWrap").style.display="none"; document.getElementById("basePick").value=""; }
+function clearBase(){ state.base=null; document.getElementById("basePick").value=""; document.getElementById("baseSearch").value=""; saveState(); renderBaseSel(); refreshMarkers(); }
 function renderBaseSel(){
   var el=document.getElementById("baseSel");
-  if(!state.base){ el.innerHTML='<p class="hint">No base plant selected.</p>'; return; }
+  if(!state.base){ el.innerHTML='<p class="hint">No base place selected.</p>'; return; }
   var pc=ukPostcode(state.base.address);
-  el.innerHTML='<div class="loc-row"><span class="dot" style="background:#ef4444"></span><span class="addr"><b>'+escapeHtml(state.base.approval)+'</b> - '+escapeHtml(state.base.name)+(pc?' <span class="rsub">'+escapeHtml(pc)+'</span>':'')+'</span><span class="clr" id="clrBase" title="Remove">&#10005;</span></div>';
+  var label = state.base.approval ? ('<b>'+escapeHtml(state.base.approval)+'</b> - '+escapeHtml(state.base.name)) : escapeHtml(state.base.name||state.base.address||"");
+  el.innerHTML='<div class="loc-row"><span class="dot" style="background:#ef4444"></span><span class="addr">'+label+(pc?' <span class="rsub">'+escapeHtml(pc)+'</span>':'')+'</span><span class="clr" id="clrBase" title="Remove">&#10005;</span></div>';
   var c=document.getElementById("clrBase"); if(c) c.addEventListener("click", clearBase);
 }
 function addStop(ap){ var p=plantByApproval(ap); if(!p) return; state.stops.push(p); saveState(); renderStops(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); hideStopPicker(); }
@@ -449,7 +456,6 @@ function renderStops(){
   el.querySelectorAll("[data-rm]").forEach(function(x){ x.addEventListener("click", function(){ removeStop(+x.getAttribute("data-rm")); }); });
 }
 function restoreSelections(){
-  if(state._baseApproval){ var pb=plantByApproval(state._baseApproval); if(pb){ document.getElementById("basePick").value=pb.approval; state.base=pb; } }
   if(state._stopApprovals && state._stopApprovals.length){ state._stopApprovals.forEach(function(ap){ var p=plantByApproval(ap); if(p) state.stops.push(p); }); }
 }
 
@@ -513,7 +519,7 @@ function shortestRoute(origin, dest){
 }
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
-  if(!state.base){ alert("Select the Base plant (your normal commute)."); return; }
+  if(!state.base){ alert("Set the Base place (your normal commute)."); return; }
   if(state.stops.length<1){ alert("Add at least one stop."); return; }
   var returnHome=document.getElementById("returnHome").checked; var MI=1609.344;
 
@@ -540,7 +546,8 @@ function calculate(){
 
     tripLine.setPath(tripPath); baseLine.setPath(baseLeg.path);
 
-    var summary='<div class="rsub" style="margin-bottom:6px;">Base: <b>'+escapeHtml(state.base.approval)+'</b> '+escapeHtml(state.base.name)+(ukPostcode(state.base.address)?' ('+escapeHtml(ukPostcode(state.base.address))+')':'')+'</div>';
+    var baseName=(state.base.approval? ('<b>'+escapeHtml(state.base.approval)+'</b> '+escapeHtml(state.base.name)) : escapeHtml(state.base.name||state.base.address||""));
+    var summary='<div class="rsub" style="margin-bottom:6px;">Base: '+baseName+(ukPostcode(state.base.address)?' ('+escapeHtml(ukPostcode(state.base.address))+')':'')+'</div>';
     state.stops.forEach(function(s,i){ summary+='<div class="rsub">Stop '+(i+1)+': <b>'+escapeHtml(s.approval)+'</b> '+escapeHtml(s.name)+(ukPostcode(s.address)?' ('+escapeHtml(ukPostcode(s.address))+')':'')+'</div>'; });
 
     resEl.innerHTML=
