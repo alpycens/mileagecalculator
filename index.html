@@ -53,7 +53,8 @@
 
   .combo{position:relative;}
   .combo-caret{position:absolute;right:10px;top:10px;color:var(--muted);pointer-events:none;font-size:12px;}
-  .combo-list{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-height:220px;overflow-y:auto;z-index:1000;}
+  .combo-list{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-height:340px;overflow-y:auto;z-index:1000;}
+  #basePop,#stopPop{overflow:visible;}
   .combo-item{padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line);}
   .combo-item:last-child{border-bottom:none;} .combo-item:hover{background:var(--panel2);}
   .combo-item small{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
@@ -188,6 +189,7 @@ var localPlants=[];
 var map, geocoder, directionsService, infoWin;
 var homeMarker=null, baseMarker=null, tmpM=null, stopMarkers=[], plantMarkers=[];
 var tripLine=null, baseLine=null, theme="dark";
+var ADMIN_PASS="0623", adminUnlocked=false;
 
 var DARK_STYLES=[{elementType:"geometry",stylers:[{color:"#1e293b"}]},{elementType:"labels.text.fill",stylers:[{color:"#94a3b8"}]},{elementType:"labels.text.stroke",stylers:[{color:"#0f172a"}]},{featureType:"water",elementType:"geometry",stylers:[{color:"#0b1220"}]},{featureType:"road",elementType:"geometry",stylers:[{color:"#334155"}]},{featureType:"poi",stylers:[{visibility:"off"}]}];
 var LIGHT_STYLES=[{featureType:"poi",stylers:[{visibility:"off"}]}];
@@ -345,7 +347,9 @@ function renderStops(){
 function restoreSelections(){ if(state._stopApprovals && state._stopApprovals.length){ state._stopApprovals.forEach(function(ap){ var p=plantByApproval(ap); if(p) state.stops.push(p); }); } }
 
 /* admin */
-function toggleAdmin(){ state.adminView=!state.adminView; document.getElementById("adminToggle").classList.toggle("active", state.adminView); if(state.adminView){ closePops("adminPop"); document.getElementById("adminPop").style.display="block"; } else { document.getElementById("adminPop").style.display="none"; if(tmpM){tmpM.setMap(null);tmpM=null;} } showPlantMarkers(); }
+function toggleAdmin(){
+  if(!state.adminView){ if(!adminUnlocked){ var p=prompt("Settings password:"); if(p!==ADMIN_PASS){ if(p!==null) alert("Wrong password."); return; } adminUnlocked=true; } }
+  state.adminView=!state.adminView; document.getElementById("adminToggle").classList.toggle("active", state.adminView); if(state.adminView){ closePops("adminPop"); document.getElementById("adminPop").style.display="block"; } else { document.getElementById("adminPop").style.display="none"; if(tmpM){tmpM.setMap(null);tmpM=null;} } showPlantMarkers(); }
 function savePlant(){ var name=document.getElementById("pName").value.trim(), approval=document.getElementById("pApproval").value.trim(); if(!name||!approval){ alert("Enter plant name and approval number."); return; } if(!state.tempPlantLoc){ alert("Set the plant location first."); return; } upsertLocalPlant({name:name,approval:approval,lat:state.tempPlantLoc.lat,lng:state.tempPlantLoc.lng,address:state.tempPlantLoc.address||""}); document.getElementById("pName").value=""; document.getElementById("pApproval").value=""; document.getElementById("plantSearch").value=""; document.getElementById("pLocInfo").textContent="No location set."; state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;} renderPlantAdminList(); showPlantMarkers(); }
 function renderPlantAdminList(){ var all=effectivePlants(); document.getElementById("plantCount").textContent=all.length; var el=document.getElementById("plantAdminList"); if(all.length===0){ el.innerHTML='<p class="hint">No plants yet.</p>'; return; }
   el.innerHTML=all.map(function(p){ var isLocal=localPlants.some(function(x){ return String(x.approval)===String(p.approval); }); return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+(isLocal?'':' <span class="badge">deployed</span>')+'</span>'+(isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'" title="Delete">&#10005;</span>':'')+'</div>'; }).join("");
