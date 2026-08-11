@@ -126,6 +126,7 @@
         </div>
         <label class="checkrow"><input type="checkbox" id="returnHome" checked> Return</label>
         <button class="green" id="calcBtn">Calculate</button>
+        <button class="ghost" id="clearBtn">Clear</button>
       </div>
 
       <!-- base plant picker popover -->
@@ -140,9 +141,12 @@
       </div>
 
       <!-- stop picker popover -->
-      <div class="pop" id="stopPop" style="left:0;width:300px;">
+      <div class="pop" id="stopPop" style="left:0;width:320px;">
         <span class="close" data-close="stopPop">&#10005;</span>
         <h2>Add a stop</h2>
+        <label>By address / postcode</label>
+        <input type="text" id="stopSearch" autocomplete="off" placeholder="postcode or address...">
+        <label style="margin-top:10px;">Or pick a plant</label>
         <div class="combo">
           <input type="text" id="stopPick" autocomplete="off" placeholder="Type approval number...">
           <span class="combo-caret">&#9662;</span>
@@ -169,7 +173,7 @@
         <input type="text" id="plantSearch" autocomplete="off" placeholder="Search address / coordinates, or click the map">
         <div id="pLocInfo" class="hint">No location set.</div>
         <button class="green wide" id="savePlantBtn">Save plant</button>
-        <p class="hint">Tip: after saving, drag any purple pin on the map to fine-tune its position.</p>
+        <p class="hint">Tip: after saving, drag any orange pin on the map to fine-tune its position.</p>
         <h2 style="margin-top:14px;">Saved plants <span class="badge" id="plantCount">0</span></h2>
         <div class="plist" id="plantAdminList"></div>
         <h2 style="margin-top:14px;">Deploy to GitHub</h2>
@@ -203,8 +207,8 @@ var DARK_STYLES=[{elementType:"geometry",stylers:[{color:"#1e293b"}]},{elementTy
 var LIGHT_STYLES=[{featureType:"poi",stylers:[{visibility:"off"}]}];
 
 /* persistence */
-function loadState(){ try{ var d=JSON.parse(localStorage.getItem(STORE_KEY)||"null"); if(d){ state.home=d.home||null; state.base=d.base||null; state._stopApprovals=d.stopApprovals||[]; state._returnHome=(d.returnHome!==false); } }catch(e){} }
-function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({ home:state.home, base:state.base, stopApprovals:state.stops.map(function(p){return p.approval;}), returnHome:document.getElementById("returnHome").checked })); }catch(e){} }
+function loadState(){ try{ var d=JSON.parse(localStorage.getItem(STORE_KEY)||"null"); if(d){ state.home=d.home||null; state.base=d.base||null; state._stops=d.stops||null; state._stopApprovals=d.stopApprovals||[]; state._returnHome=(d.returnHome!==false); } }catch(e){} }
+function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({ home:state.home, base:state.base, stops:state.stops, returnHome:document.getElementById("returnHome").checked })); }catch(e){} }
 function loadPlants(){ try{ localPlants=JSON.parse(localStorage.getItem(PLANTS_KEY)||"[]"); }catch(e){ localPlants=[]; } }
 function savePlants(){ try{ localStorage.setItem(PLANTS_KEY, JSON.stringify(localPlants)); }catch(e){} }
 function effectivePlants(){ var m={}; (SEED_PLANTS||[]).forEach(function(p){ m[String(p.approval)]=p; }); localPlants.forEach(function(p){ m[String(p.approval)]=p; }); return Object.keys(m).map(function(k){ return m[k]; }); }
@@ -251,6 +255,7 @@ window.initMap=function(){
   attachSearch("homeSearch", setHome);
   attachSearch("baseSearch", setBasePlace);
   attachSearch("plantSearch", setPlantTemp);
+  attachSearch("stopSearch", addStopPlace);
 
   map.addListener("click", function(e){ reverseGeocode(e.latLng, function(addr){ var loc={lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}; if(state.adminView) setPlantTemp(loc); else setHome(loc); }); });
 
@@ -260,12 +265,13 @@ window.initMap=function(){
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
   document.getElementById("basePlantBtn").addEventListener("click", function(){ if(togglePop("basePop")){ var i=document.getElementById("basePick"); i.value=""; i.focus(); } });
-  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopPick"); i.value=""; i.focus(); } });
+  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopSearch"); i.value=""; i.focus(); } });
   document.getElementById("savePlantBtn").addEventListener("click", savePlant);
   document.getElementById("genCodeBtn").addEventListener("click", genDeployCode);
   document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
   document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("clearBtn").addEventListener("click", clearJourney);
   document.getElementById("returnHome").addEventListener("change", saveState);
   Array.prototype.forEach.call(document.querySelectorAll(".pop .close"), function(x){ x.addEventListener("click", function(){ document.getElementById(x.getAttribute("data-close")).style.display="none"; }); });
 
@@ -300,7 +306,7 @@ function refreshMarkers(){
 function showPlantMarkers(){
   plantMarkers.forEach(function(m){ m.setMap(null); }); plantMarkers=[];
   effectivePlants().forEach(function(p){
-    var m=new google.maps.Marker({ position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")", zIndex:3, draggable:state.adminView, icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:"#a855f7",fillOpacity:1,strokeColor:"#fff",strokeWeight:2.5} });
+    var m=new google.maps.Marker({ position:{lat:p.lat,lng:p.lng}, map:map, title:p.name+" ("+p.approval+")", zIndex:3, draggable:state.adminView, icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:"#f97316",fillOpacity:1,strokeColor:"#fff",strokeWeight:2.5} });
     m.addListener("click", function(){ openPlantInfo(p,m); });
     if(state.adminView){ m.addListener("dragend", function(e){ var la=e.latLng.lat(), ln=e.latLng.lng(); reverseGeocode(e.latLng, function(addr){ upsertLocalPlant({name:p.name,approval:p.approval,lat:la,lng:ln,address:addr}); p.lat=la; p.lng=ln; p.address=addr; renderPlantAdminList(); }); }); }
     plantMarkers.push(m);
@@ -340,19 +346,22 @@ function clearBase(){ state.base=null; document.getElementById("baseSearch").val
 function renderHomeRow(){ var inp=document.getElementById("homeSearch"), btn=document.getElementById("clrHomeBtn"); if(state.home){ inp.value=state.home.address||(state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)); btn.style.display="inline-flex"; } else { btn.style.display="none"; } }
 function renderBaseSel(){ var inp=document.getElementById("baseSearch"), btn=document.getElementById("clrBaseBtn"); if(state.base){ inp.value=(state.base.approval? (state.base.approval+" - "+state.base.name) : (state.base.name||state.base.address||"")); btn.style.display="inline-flex"; } else { btn.style.display="none"; } }
 function addStop(ap){ var p=plantByApproval(ap); if(!p) return; state.stops.push(p); saveState(); renderStops(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); document.getElementById("stopPop").style.display="none"; }
+function addStopPlace(loc){ state.stops.push({name:(loc.address||("Custom: "+loc.lat.toFixed(4)+", "+loc.lng.toFixed(4))), approval:"", lat:loc.lat, lng:loc.lng, address:loc.address||""}); saveState(); renderStops(); refreshMarkers(); document.getElementById("stopSearch").value=""; document.getElementById("stopPop").style.display="none"; if(map) map.panTo({lat:loc.lat,lng:loc.lng}); }
 function moveStop(i,dir){ var j=i+dir; if(j<0||j>=state.stops.length) return; var t=state.stops[i]; state.stops[i]=state.stops[j]; state.stops[j]=t; saveState(); renderStops(); refreshMarkers(); }
 function removeStop(i){ state.stops.splice(i,1); saveState(); renderStops(); refreshMarkers(); }
 function renderStops(){
   var el=document.getElementById("stopsInline");
   if(state.stops.length===0){ el.innerHTML=""; return; }
-  el.innerHTML=state.stops.map(function(s,i){ var pc=ukPostcode(s.address); var t=escapeHtml(s.name+(pc?" ("+pc+")":""));
-    return '<span class="stop-chip" title="'+t+'"><b>'+(i+1)+'</b> '+escapeHtml(s.approval)+
+  el.innerHTML=state.stops.map(function(s,i){ var pc=ukPostcode(s.address); var t=escapeHtml((s.name||"")+(pc?" ("+pc+")":""));
+    var lab = s.approval ? escapeHtml(s.approval) : escapeHtml(pc || (s.name||"").slice(0,16));
+    return '<span class="stop-chip" title="'+t+'"><b>'+(i+1)+'</b> '+lab+
       '<span class="x" data-up="'+i+'" title="Move left">&#8249;</span><span class="x" data-down="'+i+'" title="Move right">&#8250;</span><span class="x" data-rm="'+i+'" title="Remove">&#10005;</span></span>'; }).join("");
   el.querySelectorAll("[data-up]").forEach(function(x){ x.addEventListener("click", function(){ moveStop(+x.getAttribute("data-up"),-1); }); });
   el.querySelectorAll("[data-down]").forEach(function(x){ x.addEventListener("click", function(){ moveStop(+x.getAttribute("data-down"),1); }); });
   el.querySelectorAll("[data-rm]").forEach(function(x){ x.addEventListener("click", function(){ removeStop(+x.getAttribute("data-rm")); }); });
 }
-function restoreSelections(){ if(state._stopApprovals && state._stopApprovals.length){ state._stopApprovals.forEach(function(ap){ var p=plantByApproval(ap); if(p) state.stops.push(p); }); } }
+function restoreSelections(){ if(state._stops && state._stops.length){ state.stops=state._stops.slice(); } else if(state._stopApprovals && state._stopApprovals.length){ state._stopApprovals.forEach(function(ap){ var p=plantByApproval(ap); if(p) state.stops.push(p); }); } }
+function clearJourney(){ state.stops=[]; saveState(); renderStops(); refreshMarkers(); if(tripLine) tripLine.setPath([]); if(baseLine) baseLine.setPath([]); document.getElementById("resultPop").style.display="none"; }
 
 /* admin */
 function toggleAdmin(){
@@ -391,7 +400,7 @@ function calculate(){
     tripLine.setPath(tripPath); baseLine.setPath(baseLeg.path);
     var baseName=(state.base.approval? ('<b>'+escapeHtml(state.base.approval)+'</b> '+escapeHtml(state.base.name)) : escapeHtml(state.base.name||state.base.address||""));
     var summary='<div class="rsub" style="margin-bottom:6px;">Base: '+baseName+(ukPostcode(state.base.address)?' ('+escapeHtml(ukPostcode(state.base.address))+')':'')+'</div>';
-    state.stops.forEach(function(s,i){ summary+='<div class="rsub">Stop '+(i+1)+': <b>'+escapeHtml(s.approval)+'</b> '+escapeHtml(s.name)+(ukPostcode(s.address)?' ('+escapeHtml(ukPostcode(s.address))+')':'')+'</div>'; });
+    state.stops.forEach(function(s,i){ var sn = s.approval ? ('<b>'+escapeHtml(s.approval)+'</b> '+escapeHtml(s.name)) : escapeHtml(s.name||s.address||""); summary+='<div class="rsub">Stop '+(i+1)+': '+sn+(ukPostcode(s.address)?' ('+escapeHtml(ukPostcode(s.address))+')':'')+'</div>'; });
     resEl.innerHTML=summary+'<div style="height:8px"></div>'+legRows+
       row("Total distance driven", totalMi.toFixed(1)+" mi")+
       row("Baseline commute deducted", "-"+deductMi.toFixed(1)+" mi"+(returnHome?" (round trip)":" (one way)"))+
