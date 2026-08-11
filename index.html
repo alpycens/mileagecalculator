@@ -37,6 +37,10 @@
   button.green{background:var(--accent2);} button.small{padding:6px 9px;font-size:12px;} button.wide{width:100%;margin-top:8px;}
   button.mini{background:transparent;border:none;color:var(--muted);padding:2px 4px;font-size:14px;} button.mini:hover{color:var(--danger);}
   .chip{background:var(--panel);border:1px solid var(--line);color:var(--text);font-weight:600;}
+  #stopsInline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .stop-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:5px 9px;font-size:12px;}
+  .stop-chip b{color:var(--accent2);}
+  .stop-chip .x{cursor:pointer;color:var(--muted);font-size:13px;line-height:1;} .stop-chip .x:hover{color:var(--danger);}
   .checkrow{display:flex;align-items:center;gap:6px;font-size:13px;} .checkrow input{width:auto;cursor:pointer;}
 
   /* popovers */
@@ -106,7 +110,11 @@
           <button class="mini" id="clrBaseBtn" title="Clear" style="display:none;">&#10005;</button>
         </div>
         <div class="tb-sep"></div>
-        <button class="chip" id="stopsBtn">Stops (<span id="stopCount">0</span>)</button>
+        <div class="tb-field" style="flex-wrap:wrap;">
+          <span class="tb-label">Stops</span>
+          <div id="stopsInline"></div>
+          <button class="ghost small" id="addStopBtn">+ Stop</button>
+        </div>
         <label class="checkrow"><input type="checkbox" id="returnHome" checked> Return</label>
         <button class="green" id="calcBtn">Calculate</button>
       </div>
@@ -122,17 +130,15 @@
         </div>
       </div>
 
-      <!-- stops popover -->
-      <div class="pop" id="stopsPop" style="left:0;">
-        <span class="close" data-close="stopsPop">&#10005;</span>
-        <h2>Stops (in order visited)</h2>
-        <div id="stopsBox"></div>
-        <div class="combo" id="stopComboWrap" style="display:none;">
-          <input type="text" id="stopPick" autocomplete="off" placeholder="Choose a plant to add...">
+      <!-- stop picker popover -->
+      <div class="pop" id="stopPop" style="left:0;width:300px;">
+        <span class="close" data-close="stopPop">&#10005;</span>
+        <h2>Add a stop</h2>
+        <div class="combo">
+          <input type="text" id="stopPick" autocomplete="off" placeholder="Type approval number...">
           <span class="combo-caret">&#9662;</span>
           <div class="combo-list" id="stopList"></div>
         </div>
-        <button class="addstop" id="addStopBtn">+ Add stop</button>
       </div>
 
       <!-- result popover -->
@@ -215,7 +221,7 @@ function parseCoordinates(str){ if(!str) return null; var s=str.trim();
 }
 
 /* popovers */
-function closePops(except){ ["basePop","stopsPop","resultPop","adminPop"].forEach(function(id){ if(id!==except) document.getElementById(id).style.display="none"; }); }
+function closePops(except){ ["basePop","stopPop","resultPop","adminPop"].forEach(function(id){ if(id!==except) document.getElementById(id).style.display="none"; }); }
 function togglePop(id){ var el=document.getElementById(id); var open=el.style.display==="block"; closePops(); el.style.display=open?"none":"block"; return !open; }
 
 /* map init */
@@ -244,8 +250,7 @@ window.initMap=function(){
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
   document.getElementById("basePlantBtn").addEventListener("click", function(){ if(togglePop("basePop")){ var i=document.getElementById("basePick"); i.value=""; i.focus(); } });
-  document.getElementById("stopsBtn").addEventListener("click", function(){ togglePop("stopsPop"); });
-  document.getElementById("addStopBtn").addEventListener("click", showStopPicker);
+  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopPick"); i.value=""; i.focus(); } });
   document.getElementById("savePlantBtn").addEventListener("click", savePlant);
   document.getElementById("genCodeBtn").addEventListener("click", genDeployCode);
   document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
@@ -324,18 +329,15 @@ function setBasePlace(loc){ state.base={name:(loc.address||("Custom: "+loc.lat.t
 function clearBase(){ state.base=null; document.getElementById("baseSearch").value=""; saveState(); renderBaseSel(); refreshMarkers(); }
 function renderHomeRow(){ var inp=document.getElementById("homeSearch"), btn=document.getElementById("clrHomeBtn"); if(state.home){ inp.value=state.home.address||(state.home.lat.toFixed(4)+", "+state.home.lng.toFixed(4)); btn.style.display="inline-flex"; } else { btn.style.display="none"; } }
 function renderBaseSel(){ var inp=document.getElementById("baseSearch"), btn=document.getElementById("clrBaseBtn"); if(state.base){ inp.value=(state.base.approval? (state.base.approval+" - "+state.base.name) : (state.base.name||state.base.address||"")); btn.style.display="inline-flex"; } else { btn.style.display="none"; } }
-function addStop(ap){ var p=plantByApproval(ap); if(!p) return; state.stops.push(p); saveState(); renderStops(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); hideStopPicker(); }
-function showStopPicker(){ document.getElementById("stopComboWrap").style.display="block"; var i=document.getElementById("stopPick"); i.value=""; i.focus(); }
-function hideStopPicker(){ document.getElementById("stopComboWrap").style.display="none"; document.getElementById("stopPick").value=""; }
+function addStop(ap){ var p=plantByApproval(ap); if(!p) return; state.stops.push(p); saveState(); renderStops(); refreshMarkers(); if(map) map.panTo({lat:p.lat,lng:p.lng}); document.getElementById("stopPop").style.display="none"; }
 function moveStop(i,dir){ var j=i+dir; if(j<0||j>=state.stops.length) return; var t=state.stops[i]; state.stops[i]=state.stops[j]; state.stops[j]=t; saveState(); renderStops(); refreshMarkers(); }
 function removeStop(i){ state.stops.splice(i,1); saveState(); renderStops(); refreshMarkers(); }
 function renderStops(){
-  document.getElementById("stopCount").textContent=state.stops.length;
-  var el=document.getElementById("stopsBox");
-  if(state.stops.length===0){ el.innerHTML='<p class="hint">No stops yet. Use "+ Add stop" below.</p>'; return; }
-  el.innerHTML=state.stops.map(function(s,i){ var pc=ukPostcode(s.address);
-    return '<div class="stop-item"><span class="stop-num">'+(i+1)+'</span><span class="addr"><b>'+escapeHtml(s.approval)+'</b> - '+escapeHtml(s.name)+(pc?'<div class="rsub">'+escapeHtml(pc)+'</div>':'')+'</span>'+
-      '<span class="clr" data-up="'+i+'" title="Move up">&#9650;</span><span class="clr" data-down="'+i+'" title="Move down">&#9660;</span><span class="clr" data-rm="'+i+'" title="Remove">&#10005;</span></div>'; }).join("");
+  var el=document.getElementById("stopsInline");
+  if(state.stops.length===0){ el.innerHTML=""; return; }
+  el.innerHTML=state.stops.map(function(s,i){ var pc=ukPostcode(s.address); var t=escapeHtml(s.name+(pc?" ("+pc+")":""));
+    return '<span class="stop-chip" title="'+t+'"><b>'+(i+1)+'</b> '+escapeHtml(s.approval)+
+      '<span class="x" data-up="'+i+'" title="Move left">&#8249;</span><span class="x" data-down="'+i+'" title="Move right">&#8250;</span><span class="x" data-rm="'+i+'" title="Remove">&#10005;</span></span>'; }).join("");
   el.querySelectorAll("[data-up]").forEach(function(x){ x.addEventListener("click", function(){ moveStop(+x.getAttribute("data-up"),-1); }); });
   el.querySelectorAll("[data-down]").forEach(function(x){ x.addEventListener("click", function(){ moveStop(+x.getAttribute("data-down"),1); }); });
   el.querySelectorAll("[data-rm]").forEach(function(x){ x.addEventListener("click", function(){ removeStop(+x.getAttribute("data-rm")); }); });
@@ -361,7 +363,7 @@ function shortestRoute(origin, dest){ return new Promise(function(resolve, rejec
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
   if(!state.base){ alert("Set the Base place (your normal commute)."); return; }
-  if(state.stops.length<1){ togglePop("stopsPop"); alert("Add at least one stop."); return; }
+  if(state.stops.length<1){ var i=document.getElementById("stopPick"); document.getElementById("stopPop").style.display="block"; i.focus(); alert("Add at least one stop."); return; }
   var returnHome=document.getElementById("returnHome").checked; var MI=1609.344;
   var pts=[state.home]; state.stops.forEach(function(s){ pts.push(s); }); if(returnHome) pts.push(state.home);
   var names=["Home"]; state.stops.forEach(function(s){ names.push(s.name); }); if(returnHome) names.push("Home");
