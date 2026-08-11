@@ -18,6 +18,8 @@
   .iconbtn{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;}
   .iconbtn svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .iconbtn.active{border-color:var(--accent);} .iconbtn.active svg{stroke:var(--accent);}
+  .hdr-select{height:34px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:13px;font-weight:600;padding:0 8px;cursor:pointer;}
+  .hdr-select:focus{outline:none;border-color:var(--accent);}
 
   .wrap{position:relative;height:calc(100vh - 54px);}
   #map{position:absolute;inset:0;width:100%;height:100%;background:#0b1220;}
@@ -87,6 +89,12 @@
       <h1>Mileage Claim</h1>
     </div>
     <div class="htools">
+      <select id="mapType" class="hdr-select" title="Map type">
+        <option value="roadmap">Map</option>
+        <option value="terrain">Terrain</option>
+        <option value="satellite">Satellite</option>
+        <option value="hybrid">Hybrid</option>
+      </select>
       <button class="iconbtn" id="themeToggle" title="Toggle light / dark"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-5 0-9-4-9-9z"/></svg></button>
       <button class="iconbtn" id="adminToggle" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -234,8 +242,7 @@ window.initMap=function(){
   document.getElementById("returnHome").checked=(state._returnHome!==false);
 
   var center={lat:52.9226,lng:-1.4746}; if(state.home) center={lat:state.home.lat,lng:state.home.lng};
-  map=new google.maps.Map(document.getElementById("map"),{ center:center, zoom:9, streetViewControl:false, mapTypeControl:true,
-    mapTypeControlOptions:{ style:google.maps.MapTypeControlStyle.HORIZONTAL_BAR, position:google.maps.ControlPosition.TOP_RIGHT, mapTypeIds:["roadmap","terrain","satellite","hybrid"] },
+  map=new google.maps.Map(document.getElementById("map"),{ center:center, zoom:9, streetViewControl:false, mapTypeControl:false,
     styles: theme==="light"?LIGHT_STYLES:DARK_STYLES });
   geocoder=new google.maps.Geocoder(); directionsService=new google.maps.DirectionsService(); infoWin=new google.maps.InfoWindow();
   tripLine=new google.maps.Polyline({map:map,strokeColor:"#22c55e",strokeWeight:5,strokeOpacity:0.9});
@@ -248,6 +255,7 @@ window.initMap=function(){
   map.addListener("click", function(e){ reverseGeocode(e.latLng, function(addr){ var loc={lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}; if(state.adminView) setPlantTemp(loc); else setHome(loc); }); });
 
   document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+  document.getElementById("mapType").addEventListener("change", function(){ map.setMapTypeId(this.value); });
   document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
