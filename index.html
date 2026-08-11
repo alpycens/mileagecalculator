@@ -396,6 +396,7 @@ function calculate(){
     legs.forEach(function(lg,i){ totalMeters+=lg.meters; totalSec+=lg.seconds; legRows+=row((names[i]||"?")+" -> "+(names[i+1]||"?"), (lg.meters/MI).toFixed(1)+" mi"); lg.path.forEach(function(pt){ tripPath.push(pt); }); });
     var baseDeductMeters= returnHome ? baseLeg.meters*2 : baseLeg.meters, baseDeductSec= returnHome ? baseLeg.seconds*2 : baseLeg.seconds;
     var claimMeters=Math.max(0, totalMeters-baseDeductMeters), claimSec=Math.max(0, totalSec-baseDeductSec);
+    if(claimMeters<=0) claimSec=0;
     var totalMi=totalMeters/MI, deductMi=baseDeductMeters/MI, claimMi=claimMeters/MI, totalMin=totalSec/60, claimMin=claimSec/60;
     tripLine.setPath(tripPath); baseLine.setPath(baseLeg.path);
     var baseName=(state.base.approval? ('<b>'+escapeHtml(state.base.approval)+'</b> '+escapeHtml(state.base.name)) : escapeHtml(state.base.name||state.base.address||""));
