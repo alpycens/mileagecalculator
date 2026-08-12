@@ -20,6 +20,10 @@
   .iconbtn.active{border-color:var(--accent);} .iconbtn.active svg{stroke:var(--accent);}
   .hdr-select{height:34px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:13px;font-weight:600;padding:0 8px;cursor:pointer;}
   .hdr-select:focus{outline:none;border-color:var(--accent);}
+  .mapseg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;height:34px;}
+  .mapseg button{background:var(--panel);color:var(--muted);border:none;border-left:1px solid var(--line);border-radius:0;padding:0 9px;font-size:12px;font-weight:600;}
+  .mapseg button:first-child{border-left:none;}
+  .mapseg button.active{background:var(--accent);color:#fff;}
 
   .wrap{position:relative;height:calc(100vh - 54px);}
   #map{position:absolute;inset:0;width:100%;height:100%;background:#0b1220;}
@@ -89,12 +93,12 @@
       <h1>Mileage Calculator</h1>
     </div>
     <div class="htools">
-      <select id="mapType" class="hdr-select" title="Map type">
-        <option value="roadmap">Map</option>
-        <option value="terrain">Terrain</option>
-        <option value="satellite">Satellite</option>
-        <option value="hybrid">Hybrid</option>
-      </select>
+      <div class="mapseg" id="mapType">
+        <button type="button" data-t="roadmap" class="active">Map</button>
+        <button type="button" data-t="terrain">Terrain</button>
+        <button type="button" data-t="satellite">Satellite</button>
+        <button type="button" data-t="hybrid">Hybrid</button>
+      </div>
       <button class="iconbtn" id="themeToggle" title="Toggle light / dark"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-5 0-9-4-9-9z"/></svg></button>
       <button class="iconbtn" id="adminToggle" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -280,7 +284,7 @@ window.initMap=function(){
   map.addListener("click", function(e){ reverseGeocode(e.latLng, function(addr){ var loc={lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}; if(state.adminView) setPlantTemp(loc); else setHome(loc); }); });
 
   document.getElementById("themeToggle").addEventListener("click", toggleTheme);
-  document.getElementById("mapType").addEventListener("change", function(){ map.setMapTypeId(this.value); });
+  Array.prototype.forEach.call(document.querySelectorAll("#mapType button"), function(b){ b.addEventListener("click", function(){ map.setMapTypeId(b.getAttribute("data-t")); Array.prototype.forEach.call(document.querySelectorAll("#mapType button"), function(x){ x.classList.remove("active"); }); b.classList.add("active"); }); });
   document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
