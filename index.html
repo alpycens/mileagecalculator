@@ -25,7 +25,8 @@
   .mapseg button:first-child{border-left:none;}
   .mapseg button.active{background:var(--accent);color:#fff;}
 
-  .wrap{position:relative;height:calc(100vh - 54px);}
+  #app{flex-direction:column;height:100vh;}
+  .wrap{position:relative;flex:1;min-height:0;}
   #map{position:absolute;inset:0;width:100%;height:100%;background:#0b1220;}
 
   /* top toolbar strip over the map */
@@ -82,6 +83,11 @@
   .badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:11px;color:var(--accent);}
   .err{color:var(--danger);font-size:12px;margin-top:6px;}
   @media(max-width:700px){ .tb-field input[type=text]{width:120px;} }
+  @media(max-width:640px){
+    header{flex-wrap:wrap;row-gap:8px;}
+    .htools{width:100%;justify-content:center;flex-wrap:wrap;}
+    .mapseg{flex:1;} .mapseg button{flex:1;padding:0 6px;font-size:11px;}
+  }
 </style>
 </head>
 <body>
@@ -265,7 +271,7 @@ function renderPlantsNav(){
 /* map init */
 window.initMap=function(){
   loadState(); loadPlants();
-  document.getElementById("app").style.display="block";
+  document.getElementById("app").style.display="flex";
   applyTheme(theme);
   document.getElementById("returnHome").checked=(state._returnHome!==false);
 
