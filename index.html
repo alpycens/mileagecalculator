@@ -201,7 +201,7 @@
 var GOOGLE_MAPS_API_KEY = "AIzaSyDqwaO3Xcy8D-5MzL5gAxo0RNvflRNogXw";
 
 /* PLANT DATABASE (shared). Add in Settings, Generate deployment code, paste over this line, push. */
-var SEED_PLANTS = [{"name":"FOYLE","approval":"2172","lat":51.8239033,"lng":-2.5115233,"address":"Forest Vale Industrial Estate, Forest Vale Rd, Cinderford GL14 2PH, Birleşik Krallık"},{"name":"SIMPSON","approval":"2690","lat":52.25655555555556,"lng":-1.9588055555555555,"address":"Astwood Farm, Astwood Bank, Redditch, Birleşik Krallık"},{"name":"FIR FARM","approval":"2900","lat":51.923915,"lng":-1.7463483,"address":"Fir Farm, Lower Swell, Cheltenham GL54 1LH, UK"},{"name":"SHAFA","approval":"4015","lat":52.3173352,"lng":-1.6751159,"address":"Hatton, Warwick CV35 7HZ, Birleşik Krallık"},{"name":"CUMBERLAND","approval":"4067","lat":52.442676,"lng":-1.4589329,"address":"Coventry CV2 2LD, Birleşik Krallık"},{"name":"FARMERS FRESH","approval":"4133","lat":52.32683489999999,"lng":-1.6106422,"address":"Banner Hill, Rouncil Ln, Kenilworth CV8 1NN, Birleşik Krallık"},{"name":"PARTRIDGE","approval":"4138","lat":52.3570958,"lng":-2.0638863,"address":"Stourbridge Rd, Catshill, Bromsgrove B61 0BN, Birleşik Krallık"},{"name":"TUCKEY","approval":"4392","lat":52.5188593,"lng":-1.6347663,"address":"Wellington House, Coleshill Rd, Birmingham B46 2LG, Birleşik Krallık"},{"name":"PILGRIM","approval":"8061","lat":51.5107562,"lng":-2.4496168,"address":"Westerleigh, Bristol BS37 8QZ, Birleşik Krallık"},{"name":"KINGS","approval":"8072","lat":51.8193114,"lng":-2.2409705,"address":"Whaddon, Gloucester GL4 0UG, Birleşik Krallık"},{"name":"JARRET","approval":"8119","lat":51.4476023,"lng":-2.4604789,"address":"Bristol BS30 9TN, Birleşik Krallık"},{"name":"BROOMHALL","approval":"8145","lat":51.7465061,"lng":-2.3282426,"address":"Chapel View, Alkerton, Eastington, Stonehouse GL10 3AA, Birleşik Krallık"},{"name":"UTG","approval":"8165","lat":51.8362147,"lng":-2.357399,"address":"Minsterworth, Gloucester GL2 8JX, Birleşik Krallık"},{"name":"DRURY","approval":"8201","lat":51.52392529999999,"lng":-1.9471253,"address":"Tockenham Cor, Tockenham, Swindon SN4 7PF, Birleşik Krallık"},{"name":"STILES","approval":"8249","lat":51.392584,"lng":-2.056765,"address":"Westbrook, Bromham, Chippenham SN15 2ED, Birleşik Krallık"}];
+var SEED_PLANTS = [{"name":"FOYLE","approval":"2172","lat":51.8239033,"lng":-2.5115233,"address":"Forest Vale Industrial Estate, Forest Vale Rd, Cinderford GL14 2PH, Birleşik Krallık"},{"name":"SIMPSON","approval":"2690","lat":52.25655555555556,"lng":-1.9588055555555555,"address":"Astwood Farm, Astwood Bank, Redditch, Birleşik Krallık"},{"name":"FIR FARM","approval":"2900","lat":51.923915,"lng":-1.7463483,"address":"Fir Farm, Lower Swell, Cheltenham GL54 1LH, UK"},{"name":"SHAFA","approval":"4015","lat":52.3194452,"lng":-1.6723572,"address":"Five Ways Rd, Warwick CV35 7HZ, Birleşik Krallık"},{"name":"CUMBERLAND","approval":"4067","lat":52.442676,"lng":-1.4589329,"address":"Coventry CV2 2LD, Birleşik Krallık"},{"name":"FARMERS FRESH","approval":"4133","lat":52.32683489999999,"lng":-1.6106422,"address":"Banner Hill, Rouncil Ln, Kenilworth CV8 1NN, Birleşik Krallık"},{"name":"PARTRIDGE","approval":"4138","lat":52.355222222222224,"lng":-2.062722222222222,"address":"311 Stourbridge Rd, Catshill, Bromsgrove B61 0BN, Birleşik Krallık"},{"name":"TUCKEY","approval":"4392","lat":52.5188593,"lng":-1.6347663,"address":"Wellington House, Coleshill Rd, Birmingham B46 2LG, Birleşik Krallık"},{"name":"PILGRIM","approval":"8061","lat":51.5107562,"lng":-2.4496168,"address":"Westerleigh, Bristol BS37 8QZ, Birleşik Krallık"},{"name":"KINGS","approval":"8072","lat":51.8193114,"lng":-2.2409705,"address":"Whaddon, Gloucester GL4 0UG, Birleşik Krallık"},{"name":"JARRET","approval":"8119","lat":51.4476023,"lng":-2.4604789,"address":"Bristol BS30 9TN, Birleşik Krallık"},{"name":"BROOMHALL","approval":"8145","lat":51.7465061,"lng":-2.3282426,"address":"Chapel View, Alkerton, Eastington, Stonehouse GL10 3AA, Birleşik Krallık"},{"name":"UTG","approval":"8165","lat":51.8362147,"lng":-2.357399,"address":"Minsterworth, Gloucester GL2 8JX, Birleşik Krallık"},{"name":"DRURY","approval":"8201","lat":51.52392529999999,"lng":-1.9471253,"address":"Tockenham Cor, Tockenham, Swindon SN4 7PF, Birleşik Krallık"},{"name":"STILES","approval":"8249","lat":51.392584,"lng":-2.056765,"address":"Westbrook, Bromham, Chippenham SN15 2ED, Birleşik Krallık"}];
 
 var STORE_KEY="ov_mileage_v1", PLANTS_KEY="ov_plants_v1", THEME_KEY="ov_theme";
 var state={ home:null, base:null, stops:[], tempPlantLoc:null, adminView:false };
@@ -247,18 +247,15 @@ function closePops(except){ ["basePop","stopPop","resultPop","adminPop","plantsP
 function togglePop(id){ var el=document.getElementById(id); var open=el.style.display==="block"; closePops(); el.style.display=open?"none":"block"; return !open; }
 function openNav(u){ window.open(u,"_blank"); }
 function gDest(lat,lng){ return "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+lat+","+lng; }
-function aDest(lat,lng){ return "https://maps.apple.com/?dirflg=d&daddr="+lat+","+lng; }
 function renderPlantsNav(){
   var el=document.getElementById("plantsNavList");
   var all=effectivePlants().slice().sort(function(a,b){ return String(a.approval).localeCompare(String(b.approval),undefined,{numeric:true}); });
   if(all.length===0){ el.innerHTML='<p class="hint">No plants.</p>'; return; }
   el.innerHTML=all.map(function(p){
     return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+'</span>'+
-      '<button class="ghost small" data-g="'+p.lat+','+p.lng+'">Google</button> '+
-      '<button class="ghost small" data-a="'+p.lat+','+p.lng+'">Apple</button></div>';
+      '<button class="ghost small" data-g="'+p.lat+','+p.lng+'">Start route</button></div>';
   }).join("");
   el.querySelectorAll("[data-g]").forEach(function(x){ x.addEventListener("click", function(){ var c=x.getAttribute("data-g").split(","); openNav(gDest(c[0],c[1])); }); });
-  el.querySelectorAll("[data-a]").forEach(function(x){ x.addEventListener("click", function(){ var c=x.getAttribute("data-a").split(","); openNav(aDest(c[0],c[1])); }); });
 }
 
 /* map init */
@@ -343,9 +340,8 @@ function openPlantInfo(p, marker){
   var b1=document.createElement("button"); b1.textContent="Set as base"; b1.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0"; b1.onclick=function(){ pickBasePlant(p.approval); if(infoWin) infoWin.close(); };
   var b2=document.createElement("button"); b2.textContent="Add as stop"; b2.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e"; b2.onclick=function(){ addStop(p.approval); if(infoWin) infoWin.close(); };
   var nav=document.createElement("div"); nav.style.cssText="margin-top:8px;border-top:1px solid #ddd;padding-top:8px;";
-  var b3=document.createElement("button"); b3.textContent="Google Maps"; b3.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#4285F4;margin:0 6px 0 0"; b3.onclick=function(){ openNav(gDest(p.lat,p.lng)); };
-  var b4=document.createElement("button"); b4.textContent="Apple Maps"; b4.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#555"; b4.onclick=function(){ openNav(aDest(p.lat,p.lng)); };
-  nav.appendChild(b3); nav.appendChild(b4);
+  var b3=document.createElement("button"); b3.textContent="Start route"; b3.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#4285F4"; b3.onclick=function(){ openNav(gDest(p.lat,p.lng)); };
+  nav.appendChild(b3);
   div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2); div.appendChild(nav);
   infoWin.setContent(div); infoWin.open(map, marker);
 }
@@ -456,15 +452,12 @@ function calculate(){
       row("Claimable travel time", Math.round(claimMin)+" min ("+fmtHrs(claimMin)+")")+
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route (shortest)</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
       '<div class="hint">Shortest route, normal (no-traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>'+
-      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Open route in Google Maps</button><button class="ghost small" id="navApple">Apple Maps</button></div>';
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Start route</button></div>';
     var gorigin=state.home, gdest=(returnHome?state.home:state.stops[state.stops.length-1]);
     var gwp=(returnHome?state.stops:state.stops.slice(0,-1));
     var gurl="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin="+gorigin.lat+","+gorigin.lng+"&destination="+gdest.lat+","+gdest.lng;
     if(gwp.length) gurl+="&waypoints="+encodeURIComponent(gwp.map(function(s){return s.lat+","+s.lng;}).join("|"));
-    var aseq=state.stops.slice(); if(returnHome) aseq.push(state.home);
-    var aurl="https://maps.apple.com/?dirflg=d&saddr="+state.home.lat+","+state.home.lng+"&daddr="+aseq.map(function(s){return s.lat+","+s.lng;}).join("+to:");
     var ng=document.getElementById("navGoogle"); if(ng) ng.addEventListener("click", function(){ openNav(gurl); });
-    var na=document.getElementById("navApple"); if(na) na.addEventListener("click", function(){ openNav(aurl); });
     var b=new google.maps.LatLngBounds(); tripPath.forEach(function(pt){ b.extend(pt); }); baseLeg.path.forEach(function(pt){ b.extend(pt); }); map.fitBounds(b);
   }).catch(function(err){ resEl.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
