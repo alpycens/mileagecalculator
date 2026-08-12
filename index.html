@@ -127,6 +127,7 @@
         <label class="checkrow"><input type="checkbox" id="returnHome" checked> Return</label>
         <button class="green" id="calcBtn">Calculate</button>
         <button class="ghost" id="clearBtn">Clear</button>
+        <button class="ghost" id="plantsBtn">Plants</button>
       </div>
 
       <!-- base plant picker popover -->
@@ -138,6 +139,13 @@
           <span class="combo-caret">&#9662;</span>
           <div class="combo-list" id="baseList"></div>
         </div>
+      </div>
+
+      <!-- plants navigation popover -->
+      <div class="pop" id="plantsPop" style="left:0;width:340px;">
+        <span class="close" data-close="plantsPop">&#10005;</span>
+        <h2>Plants - tap to navigate</h2>
+        <div id="plantsNavList" class="plist"></div>
       </div>
 
       <!-- stop picker popover -->
@@ -201,7 +209,7 @@ var localPlants=[];
 var map, geocoder, directionsService, infoWin;
 var homeMarker=null, baseMarker=null, tmpM=null, stopMarkers=[], plantMarkers=[];
 var tripLine=null, baseLine=null, theme="dark";
-var ADMIN_PASS="0623", adminUnlocked=false;
+var ADMIN_PASS="0623", adminUnlocked=false, editingApproval=null;
 
 var DARK_STYLES=[{elementType:"geometry",stylers:[{color:"#1e293b"}]},{elementType:"labels.text.fill",stylers:[{color:"#94a3b8"}]},{elementType:"labels.text.stroke",stylers:[{color:"#0f172a"}]},{featureType:"water",elementType:"geometry",stylers:[{color:"#0b1220"}]},{featureType:"road",elementType:"geometry",stylers:[{color:"#334155"}]},{featureType:"poi",stylers:[{visibility:"off"}]}];
 var LIGHT_STYLES=[{featureType:"poi",stylers:[{visibility:"off"}]}];
@@ -235,8 +243,23 @@ function parseCoordinates(str){ if(!str) return null; var s=str.trim();
 }
 
 /* popovers */
-function closePops(except){ ["basePop","stopPop","resultPop","adminPop"].forEach(function(id){ if(id!==except) document.getElementById(id).style.display="none"; }); }
+function closePops(except){ ["basePop","stopPop","resultPop","adminPop","plantsPop"].forEach(function(id){ if(id!==except) document.getElementById(id).style.display="none"; }); }
 function togglePop(id){ var el=document.getElementById(id); var open=el.style.display==="block"; closePops(); el.style.display=open?"none":"block"; return !open; }
+function openNav(u){ window.open(u,"_blank"); }
+function gDest(lat,lng){ return "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+lat+","+lng; }
+function aDest(lat,lng){ return "https://maps.apple.com/?dirflg=d&daddr="+lat+","+lng; }
+function renderPlantsNav(){
+  var el=document.getElementById("plantsNavList");
+  var all=effectivePlants().slice().sort(function(a,b){ return String(a.approval).localeCompare(String(b.approval),undefined,{numeric:true}); });
+  if(all.length===0){ el.innerHTML='<p class="hint">No plants.</p>'; return; }
+  el.innerHTML=all.map(function(p){
+    return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+'</span>'+
+      '<button class="ghost small" data-g="'+p.lat+','+p.lng+'">Google</button> '+
+      '<button class="ghost small" data-a="'+p.lat+','+p.lng+'">Apple</button></div>';
+  }).join("");
+  el.querySelectorAll("[data-g]").forEach(function(x){ x.addEventListener("click", function(){ var c=x.getAttribute("data-g").split(","); openNav(gDest(c[0],c[1])); }); });
+  el.querySelectorAll("[data-a]").forEach(function(x){ x.addEventListener("click", function(){ var c=x.getAttribute("data-a").split(","); openNav(aDest(c[0],c[1])); }); });
+}
 
 /* map init */
 window.initMap=function(){
@@ -272,6 +295,7 @@ window.initMap=function(){
   document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
   document.getElementById("clearBtn").addEventListener("click", clearJourney);
+  document.getElementById("plantsBtn").addEventListener("click", function(){ if(togglePop("plantsPop")) renderPlantsNav(); });
   document.getElementById("returnHome").addEventListener("change", saveState);
   Array.prototype.forEach.call(document.querySelectorAll(".pop .close"), function(x){ x.addEventListener("click", function(){ document.getElementById(x.getAttribute("data-close")).style.display="none"; }); });
 
@@ -318,7 +342,11 @@ function openPlantInfo(p, marker){
   var sub=document.createElement("div"); sub.style.cssText="font-size:12px;color:#555;margin:0 0 8px"; sub.textContent="Approval: "+p.approval;
   var b1=document.createElement("button"); b1.textContent="Set as base"; b1.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0"; b1.onclick=function(){ pickBasePlant(p.approval); if(infoWin) infoWin.close(); };
   var b2=document.createElement("button"); b2.textContent="Add as stop"; b2.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e"; b2.onclick=function(){ addStop(p.approval); if(infoWin) infoWin.close(); };
-  div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2);
+  var nav=document.createElement("div"); nav.style.cssText="margin-top:8px;border-top:1px solid #ddd;padding-top:8px;";
+  var b3=document.createElement("button"); b3.textContent="Google Maps"; b3.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#4285F4;margin:0 6px 0 0"; b3.onclick=function(){ openNav(gDest(p.lat,p.lng)); };
+  var b4=document.createElement("button"); b4.textContent="Apple Maps"; b4.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#555"; b4.onclick=function(){ openNav(aDest(p.lat,p.lng)); };
+  nav.appendChild(b3); nav.appendChild(b4);
+  div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2); div.appendChild(nav);
   infoWin.setContent(div); infoWin.open(map, marker);
 }
 
@@ -367,9 +395,26 @@ function clearJourney(){ state.stops=[]; saveState(); renderStops(); refreshMark
 function toggleAdmin(){
   if(!state.adminView){ if(!adminUnlocked){ var p=prompt("Settings password:"); if(p!==ADMIN_PASS){ if(p!==null) alert("Wrong password."); return; } adminUnlocked=true; } }
   state.adminView=!state.adminView; document.getElementById("adminToggle").classList.toggle("active", state.adminView); if(state.adminView){ closePops("adminPop"); document.getElementById("adminPop").style.display="block"; } else { document.getElementById("adminPop").style.display="none"; if(tmpM){tmpM.setMap(null);tmpM=null;} } showPlantMarkers(); }
-function savePlant(){ var name=document.getElementById("pName").value.trim(), approval=document.getElementById("pApproval").value.trim(); if(!name||!approval){ alert("Enter plant name and approval number."); return; } if(!state.tempPlantLoc){ alert("Set the plant location first."); return; } upsertLocalPlant({name:name,approval:approval,lat:state.tempPlantLoc.lat,lng:state.tempPlantLoc.lng,address:state.tempPlantLoc.address||""}); document.getElementById("pName").value=""; document.getElementById("pApproval").value=""; document.getElementById("plantSearch").value=""; document.getElementById("pLocInfo").textContent="No location set."; state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;} renderPlantAdminList(); showPlantMarkers(); }
+function savePlant(){ var name=document.getElementById("pName").value.trim(), approval=document.getElementById("pApproval").value.trim(); if(!name||!approval){ alert("Enter plant name and approval number."); return; } if(!state.tempPlantLoc){ alert("Set the plant location first."); return; }
+  if(editingApproval && editingApproval!==approval){ localPlants=localPlants.filter(function(x){ return String(x.approval)!==editingApproval; }); }
+  upsertLocalPlant({name:name,approval:approval,lat:state.tempPlantLoc.lat,lng:state.tempPlantLoc.lng,address:state.tempPlantLoc.address||""});
+  editingApproval=null;
+  document.getElementById("pName").value=""; document.getElementById("pApproval").value=""; document.getElementById("plantSearch").value=""; document.getElementById("pLocInfo").textContent="No location set."; state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;} renderPlantAdminList(); showPlantMarkers(); }
+function loadPlantIntoForm(ap){
+  var p=plantByApproval(ap); if(!p) return;
+  editingApproval=String(p.approval);
+  document.getElementById("pName").value=p.name;
+  document.getElementById("pApproval").value=p.approval;
+  document.getElementById("plantSearch").value="";
+  state.tempPlantLoc={lat:p.lat,lng:p.lng,address:p.address||""};
+  document.getElementById("pLocInfo").textContent="Location: "+(p.address||(p.lat.toFixed(4)+", "+p.lng.toFixed(4)));
+  tempMarker({lat:p.lat,lng:p.lng,address:p.address||""});
+  if(map) map.panTo({lat:p.lat,lng:p.lng});
+  document.getElementById("adminPop").scrollTop=0;
+}
 function renderPlantAdminList(){ var all=effectivePlants(); document.getElementById("plantCount").textContent=all.length; var el=document.getElementById("plantAdminList"); if(all.length===0){ el.innerHTML='<p class="hint">No plants yet.</p>'; return; }
-  el.innerHTML=all.map(function(p){ var isLocal=localPlants.some(function(x){ return String(x.approval)===String(p.approval); }); return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+(isLocal?'':' <span class="badge">deployed</span>')+'</span>'+(isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'" title="Delete">&#10005;</span>':'')+'</div>'; }).join("");
+  el.innerHTML=all.map(function(p){ var isLocal=localPlants.some(function(x){ return String(x.approval)===String(p.approval); }); return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+(isLocal?'':' <span class="badge">deployed</span>')+'</span>'+'<span class="clr" data-edit="'+escapeHtml(p.approval)+'" title="Edit">&#9998;</span>'+(isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'" title="Delete">&#10005;</span>':'')+'</div>'; }).join("");
+  el.querySelectorAll("[data-edit]").forEach(function(x){ x.addEventListener("click", function(){ loadPlantIntoForm(x.getAttribute("data-edit")); }); });
   el.querySelectorAll("[data-del]").forEach(function(x){ x.addEventListener("click", function(){ var ap=x.getAttribute("data-del"); localPlants=localPlants.filter(function(p){ return String(p.approval)!==ap; }); savePlants(); renderPlantAdminList(); showPlantMarkers(); }); });
 }
 function genDeployCode(){ var code="var SEED_PLANTS = "+JSON.stringify(effectivePlants())+";"; var ta=document.getElementById("deployCode"); ta.style.display="block"; ta.value=code; document.getElementById("copyCodeBtn").style.display="block"; }
@@ -410,7 +455,16 @@ function calculate(){
       row("Total drive time", Math.round(totalMin)+" min")+
       row("Claimable travel time", Math.round(claimMin)+" min ("+fmtHrs(claimMin)+")")+
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route (shortest)</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
-      '<div class="hint">Shortest route, normal (no-traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>';
+      '<div class="hint">Shortest route, normal (no-traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>'+
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Open route in Google Maps</button><button class="ghost small" id="navApple">Apple Maps</button></div>';
+    var gorigin=state.home, gdest=(returnHome?state.home:state.stops[state.stops.length-1]);
+    var gwp=(returnHome?state.stops:state.stops.slice(0,-1));
+    var gurl="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin="+gorigin.lat+","+gorigin.lng+"&destination="+gdest.lat+","+gdest.lng;
+    if(gwp.length) gurl+="&waypoints="+encodeURIComponent(gwp.map(function(s){return s.lat+","+s.lng;}).join("|"));
+    var aseq=state.stops.slice(); if(returnHome) aseq.push(state.home);
+    var aurl="https://maps.apple.com/?dirflg=d&saddr="+state.home.lat+","+state.home.lng+"&daddr="+aseq.map(function(s){return s.lat+","+s.lng;}).join("+to:");
+    var ng=document.getElementById("navGoogle"); if(ng) ng.addEventListener("click", function(){ openNav(gurl); });
+    var na=document.getElementById("navApple"); if(na) na.addEventListener("click", function(){ openNav(aurl); });
     var b=new google.maps.LatLngBounds(); tripPath.forEach(function(pt){ b.extend(pt); }); baseLeg.path.forEach(function(pt){ b.extend(pt); }); map.fitBounds(b);
   }).catch(function(err){ resEl.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
