@@ -281,7 +281,7 @@ window.initMap=function(){
   attachSearch("plantSearch", setPlantTemp);
   attachSearch("stopSearch", addStopPlace);
 
-  map.addListener("click", function(e){ reverseGeocode(e.latLng, function(addr){ var loc={lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}; if(state.adminView) setPlantTemp(loc); else setHome(loc); }); });
+  map.addListener("click", function(e){ if(!state.adminView) return; reverseGeocode(e.latLng, function(addr){ setPlantTemp({lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}); }); });
 
   document.getElementById("themeToggle").addEventListener("click", toggleTheme);
   Array.prototype.forEach.call(document.querySelectorAll("#mapType button"), function(b){ b.addEventListener("click", function(){ map.setMapTypeId(b.getAttribute("data-t")); Array.prototype.forEach.call(document.querySelectorAll("#mapType button"), function(x){ x.classList.remove("active"); }); b.classList.add("active"); }); });
