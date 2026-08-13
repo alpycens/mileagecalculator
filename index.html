@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mileage Calculator</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMzhiZGY4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjJjNTVlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjU4IiBoZWlnaHQ9IjU4IiByeD0iMTQiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJNMTUgNTEgQyAyNyA0NCwgMjAgMzMsIDMxIDI3IFMgNDQgMjAsIDQ3IDEzIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNC41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1kYXNoYXJyYXk9IjAuNSA4IiBvcGFjaXR5PSIwLjk1Ii8+PHBhdGggZD0iTTMyIDI2IGMtNiAwIC0xMSA0LjYgLTExIDExIGMwIDggMTEgMTkgMTEgMTkgczExIC0xMSAxMSAtMTkgYzAgLTYuNCAtNSAtMTEgLTExIC0xMSB6IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIzNyIgcj0iNC40IiBmaWxsPSIjMjJjNTVlIi8+PC9zdmc+Cg==">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNjQgNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMzhiZGY4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjJjNTVlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTUiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJNMTMgNTMgQyAyNyA0NiwgMjEgMzUsIDMzIDMwIFMgNDUgMjQsIDQ3IDE3IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMTMgNTMgQyAyNyA0NiwgMjEgMzUsIDMzIDMwIFMgNDUgMjQsIDQ3IDE3IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjE3MmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1kYXNoYXJyYXk9IjEuNSA1IiBvcGFjaXR5PSIwLjUiLz48cGF0aCBkPSJNNDcgNiBjLTUuMiAwIC05LjQgNC4yIC05LjQgOS40IGMwIDYuOCA5LjQgMTUuNiA5LjQgMTUuNiBzOS40IC04LjggOS40IC0xNS42IGMwIC01LjIgLTQuMiAtOS40IC05LjQgLTkuNCB6IiBmaWxsPSIjZWY0NDQ0IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMS42Ii8+PGNpcmNsZSBjeD0iNDciIGN5PSIxNS40IiByPSIzLjYiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=">
 <style>
   :root{ --bg:#0f172a; --panel:#1e293b; --panel2:#334155; --line:#475569; --text:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8; --accent2:#22c55e; --warn:#f59e0b; --danger:#ef4444; --plant:#a855f7; --radius:10px; }
   body.light{ --bg:#ffffff; --panel:#f1f5f9; --panel2:#ffffff; --line:#cbd5e1; --text:#0f172a; --muted:#64748b; }
@@ -12,7 +12,7 @@
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
   header{position:sticky;top:0;z-index:600;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;}
   .brand{display:flex;align-items:center;gap:10px;}
-  .brand svg.logo{width:30px;height:30px;flex:0 0 30px;border-radius:8px;}
+  .brand svg.logo{width:32px;height:32px;flex:0 0 32px;border-radius:8px;}
   header h1{margin:0;font-size:16px;font-weight:600;}
   .htools{display:flex;gap:8px;align-items:center;}
   .iconbtn{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;}
@@ -20,8 +20,13 @@
   .iconbtn.active{border-color:var(--accent);} .iconbtn.active svg{stroke:var(--accent);}
   .hdr-select{height:34px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:13px;font-weight:600;padding:0 8px;cursor:pointer;}
   .hdr-select:focus{outline:none;border-color:var(--accent);}
+  .mapseg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;height:34px;}
+  .mapseg button{background:var(--panel);color:var(--muted);border:none;border-left:1px solid var(--line);border-radius:0;padding:0 9px;font-size:12px;font-weight:600;}
+  .mapseg button:first-child{border-left:none;}
+  .mapseg button.active{background:var(--accent);color:#fff;}
 
-  .wrap{position:relative;height:calc(100vh - 54px);}
+  #app{flex-direction:column;height:100vh;}
+  .wrap{position:relative;flex:1;min-height:0;}
   #map{position:absolute;inset:0;width:100%;height:100%;background:#0b1220;}
 
   /* top toolbar strip over the map */
@@ -32,6 +37,9 @@
   .tb-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
   .tb-field input[type=text]{width:150px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px;cursor:pointer;}
   .tb-field input[type=text]:focus{outline:none;border-color:var(--accent);cursor:text;}
+  .addr-field{flex:1 1 240px;min-width:180px;}
+  .addr-field input[type=text]{flex:1;width:auto;min-width:0;}
+  @media(max-width:640px){ .addr-field{flex:1 1 100%;} }
   .tb-sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px;}
   button{cursor:pointer;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#fff;background:var(--accent);transition:opacity .15s;}
   button:hover{opacity:.9;}
@@ -78,6 +86,11 @@
   .badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:11px;color:var(--accent);}
   .err{color:var(--danger);font-size:12px;margin-top:6px;}
   @media(max-width:700px){ .tb-field input[type=text]{width:120px;} }
+  @media(max-width:640px){
+    header{flex-wrap:wrap;row-gap:8px;}
+    .htools{width:100%;justify-content:center;flex-wrap:wrap;}
+    .mapseg{flex:1;} .mapseg button{flex:1;padding:0 6px;font-size:11px;}
+  }
 </style>
 </head>
 <body>
@@ -85,16 +98,16 @@
 <div id="app" style="display:none;">
   <header>
     <div class="brand">
-      <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs><rect x="3" y="3" width="58" height="58" rx="14" fill="url(#hg)"/><path d="M15 51 C 27 44, 20 33, 31 27 S 44 20, 47 13" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="0.5 8" opacity="0.95"/><path d="M32 26 c-6 0 -11 4.6 -11 11 c0 8 11 19 11 19 s11 -11 11 -19 c0 -6.4 -5 -11 -11 -11 z" fill="#fff"/><circle cx="32" cy="37" r="4.4" fill="#22c55e"/></svg>
+      <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="15" fill="url(#hg)"/><path d="M13 53 C 27 46, 21 35, 33 30 S 45 24, 47 17" fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round"/><path d="M13 53 C 27 46, 21 35, 33 30 S 45 24, 47 17" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.5 5" opacity="0.5"/><path d="M47 6 c-5.2 0 -9.4 4.2 -9.4 9.4 c0 6.8 9.4 15.6 9.4 15.6 s9.4 -8.8 9.4 -15.6 c0 -5.2 -4.2 -9.4 -9.4 -9.4 z" fill="#ef4444" stroke="#ffffff" stroke-width="1.6"/><circle cx="47" cy="15.4" r="3.6" fill="#ffffff"/></svg>
       <h1>Mileage Calculator</h1>
     </div>
     <div class="htools">
-      <select id="mapType" class="hdr-select" title="Map type">
-        <option value="roadmap">Map</option>
-        <option value="terrain">Terrain</option>
-        <option value="satellite">Satellite</option>
-        <option value="hybrid">Hybrid</option>
-      </select>
+      <div class="mapseg" id="mapType">
+        <button type="button" data-t="roadmap" class="active">Map</button>
+        <button type="button" data-t="terrain">Terrain</button>
+        <button type="button" data-t="satellite">Satellite</button>
+        <button type="button" data-t="hybrid">Hybrid</button>
+      </div>
       <button class="iconbtn" id="themeToggle" title="Toggle light / dark"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-5 0-9-4-9-9z"/></svg></button>
       <button class="iconbtn" id="adminToggle" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -106,13 +119,13 @@
     <div class="side">
       <!-- compact horizontal toolbar -->
       <div class="toolbar" id="toolbar">
-        <div class="tb-field">
+        <div class="tb-field addr-field">
           <span class="tb-label">Home</span>
           <input type="text" id="homeSearch" autocomplete="off" placeholder="postcode / address">
           <button class="mini" id="clrHomeBtn" title="Clear" style="display:none;">&#10005;</button>
         </div>
         <div class="tb-sep"></div>
-        <div class="tb-field">
+        <div class="tb-field addr-field">
           <span class="tb-label">Base</span>
           <input type="text" id="baseSearch" autocomplete="off" placeholder="postcode / address">
           <button class="ghost small" id="basePlantBtn">plant</button>
@@ -127,6 +140,7 @@
         <label class="checkrow"><input type="checkbox" id="returnHome" checked> Return</label>
         <button class="green" id="calcBtn">Calculate</button>
         <button class="ghost" id="clearBtn">Clear</button>
+        <button class="ghost" id="plantsBtn">Plants</button>
       </div>
 
       <!-- base plant picker popover -->
@@ -138,6 +152,13 @@
           <span class="combo-caret">&#9662;</span>
           <div class="combo-list" id="baseList"></div>
         </div>
+      </div>
+
+      <!-- plants navigation popover -->
+      <div class="pop" id="plantsPop" style="left:0;width:340px;">
+        <span class="close" data-close="plantsPop">&#10005;</span>
+        <h2>Plants - tap to navigate</h2>
+        <div id="plantsNavList" class="plist"></div>
       </div>
 
       <!-- stop picker popover -->
@@ -193,7 +214,7 @@
 var GOOGLE_MAPS_API_KEY = "AIzaSyDqwaO3Xcy8D-5MzL5gAxo0RNvflRNogXw";
 
 /* PLANT DATABASE (shared). Add in Settings, Generate deployment code, paste over this line, push. */
-var SEED_PLANTS = [{"name":"FOYLE","approval":"2172","lat":51.8239033,"lng":-2.5115233,"address":"Forest Vale Industrial Estate, Forest Vale Rd, Cinderford GL14 2PH, Birleşik Krallık"},{"name":"SIMPSON","approval":"2690","lat":52.25655555555556,"lng":-1.9588055555555555,"address":"Astwood Farm, Astwood Bank, Redditch, Birleşik Krallık"},{"name":"FIR FARM","approval":"2900","lat":51.923915,"lng":-1.7463483,"address":"Fir Farm, Lower Swell, Cheltenham GL54 1LH, UK"},{"name":"SHAFA","approval":"4015","lat":52.3173352,"lng":-1.6751159,"address":"Hatton, Warwick CV35 7HZ, Birleşik Krallık"},{"name":"CUMBERLAND","approval":"4067","lat":52.442676,"lng":-1.4589329,"address":"Coventry CV2 2LD, Birleşik Krallık"},{"name":"FARMERS FRESH","approval":"4133","lat":52.32683489999999,"lng":-1.6106422,"address":"Banner Hill, Rouncil Ln, Kenilworth CV8 1NN, Birleşik Krallık"},{"name":"PARTRIDGE","approval":"4138","lat":52.3570958,"lng":-2.0638863,"address":"Stourbridge Rd, Catshill, Bromsgrove B61 0BN, Birleşik Krallık"},{"name":"TUCKEY","approval":"4392","lat":52.5188593,"lng":-1.6347663,"address":"Wellington House, Coleshill Rd, Birmingham B46 2LG, Birleşik Krallık"},{"name":"PILGRIM","approval":"8061","lat":51.5107562,"lng":-2.4496168,"address":"Westerleigh, Bristol BS37 8QZ, Birleşik Krallık"},{"name":"KINGS","approval":"8072","lat":51.8193114,"lng":-2.2409705,"address":"Whaddon, Gloucester GL4 0UG, Birleşik Krallık"},{"name":"JARRET","approval":"8119","lat":51.4476023,"lng":-2.4604789,"address":"Bristol BS30 9TN, Birleşik Krallık"},{"name":"BROOMHALL","approval":"8145","lat":51.7465061,"lng":-2.3282426,"address":"Chapel View, Alkerton, Eastington, Stonehouse GL10 3AA, Birleşik Krallık"},{"name":"UTG","approval":"8165","lat":51.8362147,"lng":-2.357399,"address":"Minsterworth, Gloucester GL2 8JX, Birleşik Krallık"},{"name":"DRURY","approval":"8201","lat":51.52392529999999,"lng":-1.9471253,"address":"Tockenham Cor, Tockenham, Swindon SN4 7PF, Birleşik Krallık"},{"name":"STILES","approval":"8249","lat":51.392584,"lng":-2.056765,"address":"Westbrook, Bromham, Chippenham SN15 2ED, Birleşik Krallık"}];
+var SEED_PLANTS = [{"name":"FOYLE","approval":"2172","lat":51.8239033,"lng":-2.5115233,"address":"Forest Vale Industrial Estate, Forest Vale Rd, Cinderford GL14 2PH, Birleşik Krallık"},{"name":"SIMPSON","approval":"2690","lat":52.25655555555556,"lng":-1.9588055555555555,"address":"Astwood Farm, Astwood Bank, Redditch, Birleşik Krallık"},{"name":"FIR FARM","approval":"2900","lat":51.923915,"lng":-1.7463483,"address":"Fir Farm, Lower Swell, Cheltenham GL54 1LH, UK"},{"name":"SHAFA","approval":"4015","lat":52.3194452,"lng":-1.6723572,"address":"Five Ways Rd, Warwick CV35 7HZ, Birleşik Krallık"},{"name":"CUMBERLAND","approval":"4067","lat":52.442676,"lng":-1.4589329,"address":"Coventry CV2 2LD, Birleşik Krallık"},{"name":"FARMERS FRESH","approval":"4133","lat":52.32683489999999,"lng":-1.6106422,"address":"Banner Hill, Rouncil Ln, Kenilworth CV8 1NN, Birleşik Krallık"},{"name":"PARTRIDGE","approval":"4138","lat":52.355222222222224,"lng":-2.062722222222222,"address":"311 Stourbridge Rd, Catshill, Bromsgrove B61 0BN, Birleşik Krallık"},{"name":"TUCKEY","approval":"4392","lat":52.5188593,"lng":-1.6347663,"address":"Wellington House, Coleshill Rd, Birmingham B46 2LG, Birleşik Krallık"},{"name":"PILGRIM","approval":"8061","lat":51.5107562,"lng":-2.4496168,"address":"Westerleigh, Bristol BS37 8QZ, Birleşik Krallık"},{"name":"KINGS","approval":"8072","lat":51.8193114,"lng":-2.2409705,"address":"Whaddon, Gloucester GL4 0UG, Birleşik Krallık"},{"name":"JARRET","approval":"8119","lat":51.4476023,"lng":-2.4604789,"address":"Bristol BS30 9TN, Birleşik Krallık"},{"name":"BROOMHALL","approval":"8145","lat":51.7465061,"lng":-2.3282426,"address":"Chapel View, Alkerton, Eastington, Stonehouse GL10 3AA, Birleşik Krallık"},{"name":"UTG","approval":"8165","lat":51.8362147,"lng":-2.357399,"address":"Minsterworth, Gloucester GL2 8JX, Birleşik Krallık"},{"name":"DRURY","approval":"8201","lat":51.52392529999999,"lng":-1.9471253,"address":"Tockenham Cor, Tockenham, Swindon SN4 7PF, Birleşik Krallık"},{"name":"STILES","approval":"8249","lat":51.392584,"lng":-2.056765,"address":"Westbrook, Bromham, Chippenham SN15 2ED, Birleşik Krallık"}];
 
 var STORE_KEY="ov_mileage_v1", PLANTS_KEY="ov_plants_v1", THEME_KEY="ov_theme";
 var state={ home:null, base:null, stops:[], tempPlantLoc:null, adminView:false };
@@ -201,7 +222,7 @@ var localPlants=[];
 var map, geocoder, directionsService, infoWin;
 var homeMarker=null, baseMarker=null, tmpM=null, stopMarkers=[], plantMarkers=[];
 var tripLine=null, baseLine=null, theme="dark";
-var ADMIN_PASS="0623", adminUnlocked=false;
+var ADMIN_PASS="0623", adminUnlocked=false, editingApproval=null;
 
 var DARK_STYLES=[{elementType:"geometry",stylers:[{color:"#1e293b"}]},{elementType:"labels.text.fill",stylers:[{color:"#94a3b8"}]},{elementType:"labels.text.stroke",stylers:[{color:"#0f172a"}]},{featureType:"water",elementType:"geometry",stylers:[{color:"#0b1220"}]},{featureType:"road",elementType:"geometry",stylers:[{color:"#334155"}]},{featureType:"poi",stylers:[{visibility:"off"}]}];
 var LIGHT_STYLES=[{featureType:"poi",stylers:[{visibility:"off"}]}];
@@ -235,13 +256,25 @@ function parseCoordinates(str){ if(!str) return null; var s=str.trim();
 }
 
 /* popovers */
-function closePops(except){ ["basePop","stopPop","resultPop","adminPop"].forEach(function(id){ if(id!==except) document.getElementById(id).style.display="none"; }); }
+function closePops(except){ ["basePop","stopPop","resultPop","adminPop","plantsPop"].forEach(function(id){ if(id!==except) document.getElementById(id).style.display="none"; }); }
 function togglePop(id){ var el=document.getElementById(id); var open=el.style.display==="block"; closePops(); el.style.display=open?"none":"block"; return !open; }
+function openNav(u){ window.open(u,"_blank"); }
+function gDest(lat,lng){ return "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+lat+","+lng; }
+function renderPlantsNav(){
+  var el=document.getElementById("plantsNavList");
+  var all=effectivePlants().slice().sort(function(a,b){ return String(a.approval).localeCompare(String(b.approval),undefined,{numeric:true}); });
+  if(all.length===0){ el.innerHTML='<p class="hint">No plants.</p>'; return; }
+  el.innerHTML=all.map(function(p){
+    return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+'</span>'+
+      '<button class="ghost small" data-g="'+p.lat+','+p.lng+'">Start route</button></div>';
+  }).join("");
+  el.querySelectorAll("[data-g]").forEach(function(x){ x.addEventListener("click", function(){ var c=x.getAttribute("data-g").split(","); openNav(gDest(c[0],c[1])); }); });
+}
 
 /* map init */
 window.initMap=function(){
   loadState(); loadPlants();
-  document.getElementById("app").style.display="block";
+  document.getElementById("app").style.display="flex";
   applyTheme(theme);
   document.getElementById("returnHome").checked=(state._returnHome!==false);
 
@@ -257,10 +290,10 @@ window.initMap=function(){
   attachSearch("plantSearch", setPlantTemp);
   attachSearch("stopSearch", addStopPlace);
 
-  map.addListener("click", function(e){ reverseGeocode(e.latLng, function(addr){ var loc={lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}; if(state.adminView) setPlantTemp(loc); else setHome(loc); }); });
+  map.addListener("click", function(e){ if(!state.adminView) return; reverseGeocode(e.latLng, function(addr){ setPlantTemp({lat:e.latLng.lat(),lng:e.latLng.lng(),address:addr}); }); });
 
   document.getElementById("themeToggle").addEventListener("click", toggleTheme);
-  document.getElementById("mapType").addEventListener("change", function(){ map.setMapTypeId(this.value); });
+  Array.prototype.forEach.call(document.querySelectorAll("#mapType button"), function(b){ b.addEventListener("click", function(){ map.setMapTypeId(b.getAttribute("data-t")); Array.prototype.forEach.call(document.querySelectorAll("#mapType button"), function(x){ x.classList.remove("active"); }); b.classList.add("active"); }); });
   document.getElementById("adminToggle").addEventListener("click", toggleAdmin);
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
@@ -272,6 +305,7 @@ window.initMap=function(){
   document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
   document.getElementById("clearBtn").addEventListener("click", clearJourney);
+  document.getElementById("plantsBtn").addEventListener("click", function(){ if(togglePop("plantsPop")) renderPlantsNav(); });
   document.getElementById("returnHome").addEventListener("change", saveState);
   Array.prototype.forEach.call(document.querySelectorAll(".pop .close"), function(x){ x.addEventListener("click", function(){ document.getElementById(x.getAttribute("data-close")).style.display="none"; }); });
 
@@ -318,7 +352,10 @@ function openPlantInfo(p, marker){
   var sub=document.createElement("div"); sub.style.cssText="font-size:12px;color:#555;margin:0 0 8px"; sub.textContent="Approval: "+p.approval;
   var b1=document.createElement("button"); b1.textContent="Set as base"; b1.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#ef4444;margin:0 6px 6px 0"; b1.onclick=function(){ pickBasePlant(p.approval); if(infoWin) infoWin.close(); };
   var b2=document.createElement("button"); b2.textContent="Add as stop"; b2.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#22c55e"; b2.onclick=function(){ addStop(p.approval); if(infoWin) infoWin.close(); };
-  div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2);
+  var nav=document.createElement("div"); nav.style.cssText="margin-top:8px;border-top:1px solid #ddd;padding-top:8px;";
+  var b3=document.createElement("button"); b3.textContent="Start route"; b3.style.cssText="cursor:pointer;border:none;border-radius:6px;padding:7px 9px;font-size:12px;font-weight:600;color:#fff;background:#4285F4"; b3.onclick=function(){ openNav(gDest(p.lat,p.lng)); };
+  nav.appendChild(b3);
+  div.appendChild(head); div.appendChild(sub); div.appendChild(b1); div.appendChild(b2); div.appendChild(nav);
   infoWin.setContent(div); infoWin.open(map, marker);
 }
 
@@ -367,9 +404,26 @@ function clearJourney(){ state.stops=[]; saveState(); renderStops(); refreshMark
 function toggleAdmin(){
   if(!state.adminView){ if(!adminUnlocked){ var p=prompt("Settings password:"); if(p!==ADMIN_PASS){ if(p!==null) alert("Wrong password."); return; } adminUnlocked=true; } }
   state.adminView=!state.adminView; document.getElementById("adminToggle").classList.toggle("active", state.adminView); if(state.adminView){ closePops("adminPop"); document.getElementById("adminPop").style.display="block"; } else { document.getElementById("adminPop").style.display="none"; if(tmpM){tmpM.setMap(null);tmpM=null;} } showPlantMarkers(); }
-function savePlant(){ var name=document.getElementById("pName").value.trim(), approval=document.getElementById("pApproval").value.trim(); if(!name||!approval){ alert("Enter plant name and approval number."); return; } if(!state.tempPlantLoc){ alert("Set the plant location first."); return; } upsertLocalPlant({name:name,approval:approval,lat:state.tempPlantLoc.lat,lng:state.tempPlantLoc.lng,address:state.tempPlantLoc.address||""}); document.getElementById("pName").value=""; document.getElementById("pApproval").value=""; document.getElementById("plantSearch").value=""; document.getElementById("pLocInfo").textContent="No location set."; state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;} renderPlantAdminList(); showPlantMarkers(); }
+function savePlant(){ var name=document.getElementById("pName").value.trim(), approval=document.getElementById("pApproval").value.trim(); if(!name||!approval){ alert("Enter plant name and approval number."); return; } if(!state.tempPlantLoc){ alert("Set the plant location first."); return; }
+  if(editingApproval && editingApproval!==approval){ localPlants=localPlants.filter(function(x){ return String(x.approval)!==editingApproval; }); }
+  upsertLocalPlant({name:name,approval:approval,lat:state.tempPlantLoc.lat,lng:state.tempPlantLoc.lng,address:state.tempPlantLoc.address||""});
+  editingApproval=null;
+  document.getElementById("pName").value=""; document.getElementById("pApproval").value=""; document.getElementById("plantSearch").value=""; document.getElementById("pLocInfo").textContent="No location set."; state.tempPlantLoc=null; if(tmpM){tmpM.setMap(null);tmpM=null;} renderPlantAdminList(); showPlantMarkers(); }
+function loadPlantIntoForm(ap){
+  var p=plantByApproval(ap); if(!p) return;
+  editingApproval=String(p.approval);
+  document.getElementById("pName").value=p.name;
+  document.getElementById("pApproval").value=p.approval;
+  document.getElementById("plantSearch").value="";
+  state.tempPlantLoc={lat:p.lat,lng:p.lng,address:p.address||""};
+  document.getElementById("pLocInfo").textContent="Location: "+(p.address||(p.lat.toFixed(4)+", "+p.lng.toFixed(4)));
+  tempMarker({lat:p.lat,lng:p.lng,address:p.address||""});
+  if(map) map.panTo({lat:p.lat,lng:p.lng});
+  document.getElementById("adminPop").scrollTop=0;
+}
 function renderPlantAdminList(){ var all=effectivePlants(); document.getElementById("plantCount").textContent=all.length; var el=document.getElementById("plantAdminList"); if(all.length===0){ el.innerHTML='<p class="hint">No plants yet.</p>'; return; }
-  el.innerHTML=all.map(function(p){ var isLocal=localPlants.some(function(x){ return String(x.approval)===String(p.approval); }); return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+(isLocal?'':' <span class="badge">deployed</span>')+'</span>'+(isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'" title="Delete">&#10005;</span>':'')+'</div>'; }).join("");
+  el.innerHTML=all.map(function(p){ var isLocal=localPlants.some(function(x){ return String(x.approval)===String(p.approval); }); return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+(isLocal?'':' <span class="badge">deployed</span>')+'</span>'+'<span class="clr" data-edit="'+escapeHtml(p.approval)+'" title="Edit">&#9998;</span>'+(isLocal?'<span class="clr" data-del="'+escapeHtml(p.approval)+'" title="Delete">&#10005;</span>':'')+'</div>'; }).join("");
+  el.querySelectorAll("[data-edit]").forEach(function(x){ x.addEventListener("click", function(){ loadPlantIntoForm(x.getAttribute("data-edit")); }); });
   el.querySelectorAll("[data-del]").forEach(function(x){ x.addEventListener("click", function(){ var ap=x.getAttribute("data-del"); localPlants=localPlants.filter(function(p){ return String(p.approval)!==ap; }); savePlants(); renderPlantAdminList(); showPlantMarkers(); }); });
 }
 function genDeployCode(){ var code="var SEED_PLANTS = "+JSON.stringify(effectivePlants())+";"; var ta=document.getElementById("deployCode"); ta.style.display="block"; ta.value=code; document.getElementById("copyCodeBtn").style.display="block"; }
@@ -410,7 +464,13 @@ function calculate(){
       row("Total drive time", Math.round(totalMin)+" min")+
       row("Claimable travel time", Math.round(claimMin)+" min ("+fmtHrs(claimMin)+")")+
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route (shortest)</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
-      '<div class="hint">Shortest route, normal (no-traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>';
+      '<div class="hint">Shortest route, normal (no-traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>'+
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Start route</button></div>';
+    var gorigin=state.home, gdest=(returnHome?state.home:state.stops[state.stops.length-1]);
+    var gwp=(returnHome?state.stops:state.stops.slice(0,-1));
+    var gurl="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin="+gorigin.lat+","+gorigin.lng+"&destination="+gdest.lat+","+gdest.lng;
+    if(gwp.length) gurl+="&waypoints="+encodeURIComponent(gwp.map(function(s){return s.lat+","+s.lng;}).join("|"));
+    var ng=document.getElementById("navGoogle"); if(ng) ng.addEventListener("click", function(){ openNav(gurl); });
     var b=new google.maps.LatLngBounds(); tripPath.forEach(function(pt){ b.extend(pt); }); baseLeg.path.forEach(function(pt){ b.extend(pt); }); map.fitBounds(b);
   }).catch(function(err){ resEl.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
