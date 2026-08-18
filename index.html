@@ -165,6 +165,7 @@
       <div class="pop" id="plantsPop" style="left:0;width:340px;">
         <span class="close" data-close="plantsPop">&#10005;</span>
         <h2>Plants - tap to navigate</h2>
+        <input type="text" id="plantsSearch" autocomplete="off" placeholder="Search number or name..." style="margin-bottom:8px;">
         <div id="plantsNavList" class="plist"></div>
       </div>
 
@@ -268,10 +269,11 @@ function closePops(except){ ["basePop","stopPop","resultPop","adminPop","plantsP
 function togglePop(id){ var el=document.getElementById(id); var open=el.style.display==="block"; closePops(); el.style.display=open?"none":"block"; return !open; }
 function openNav(u){ window.open(u,"_blank"); }
 function gDest(lat,lng){ return "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+lat+","+lng; }
-function renderPlantsNav(){
+function renderPlantsNav(filter){
   var el=document.getElementById("plantsNavList");
   var all=effectivePlants().slice().sort(function(a,b){ return String(a.approval).localeCompare(String(b.approval),undefined,{numeric:true}); });
-  if(all.length===0){ el.innerHTML='<p class="hint">No plants.</p>'; return; }
+  if(filter){ var f=filter.toLowerCase(); all=all.filter(function(p){ return String(p.approval).toLowerCase().indexOf(f)>=0 || (p.name||"").toLowerCase().indexOf(f)>=0; }); }
+  if(all.length===0){ el.innerHTML='<p class="hint">No matching plants.</p>'; return; }
   el.innerHTML=all.map(function(p){
     return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(p.approval)+'</b> - '+escapeHtml(p.name)+'</span>'+
       '<button class="ghost small" data-g="'+p.lat+','+p.lng+'">Start route</button></div>';
@@ -313,7 +315,8 @@ window.initMap=function(){
   document.getElementById("clearLocalBtn").addEventListener("click", clearLocal);
   document.getElementById("calcBtn").addEventListener("click", calculate);
   document.getElementById("clearBtn").addEventListener("click", clearJourney);
-  document.getElementById("plantsBtn").addEventListener("click", function(){ if(togglePop("plantsPop")) renderPlantsNav(); });
+  document.getElementById("plantsBtn").addEventListener("click", function(){ if(togglePop("plantsPop")){ var q=document.getElementById("plantsSearch"); q.value=""; renderPlantsNav(""); q.focus(); } });
+  document.getElementById("plantsSearch").addEventListener("input", function(){ renderPlantsNav(this.value.trim()); });
   document.getElementById("returnHome").addEventListener("change", saveState);
   Array.prototype.forEach.call(document.querySelectorAll(".pop .close"), function(x){ x.addEventListener("click", function(){ document.getElementById(x.getAttribute("data-close")).style.display="none"; }); });
 
