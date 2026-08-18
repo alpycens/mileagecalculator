@@ -47,6 +47,13 @@
   button.green{background:var(--accent2);} button.small{padding:6px 9px;font-size:12px;} button.wide{width:100%;margin-top:8px;}
   button.mini{background:transparent;border:none;color:var(--muted);padding:2px 4px;font-size:14px;} button.mini:hover{color:var(--danger);}
   .chip{background:var(--panel);border:1px solid var(--line);color:var(--text);font-weight:600;}
+  .plants-btn{background:#f97316;color:#fff;border:1px solid #f97316;}
+  .plants-btn:hover{opacity:.9;}
+  .basepick-btn{border-color:var(--accent);color:var(--accent);}
+  .ob{background:transparent;border:1px solid var(--accent);color:var(--accent);}
+  .ob:hover{background:var(--accent);color:#fff;opacity:1;}
+  .pbtn{background:#f97316;color:#fff;border:none;}
+  .pbtn:hover{opacity:.9;}
   #stopsInline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
   .stop-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:5px 9px;font-size:12px;}
   .stop-chip b{color:var(--accent2);}
@@ -128,19 +135,19 @@
         <div class="tb-field addr-field">
           <span class="tb-label">Base</span>
           <input type="text" id="baseSearch" autocomplete="off" placeholder="postcode / address">
-          <button class="ghost small" id="basePlantBtn">plant</button>
+          <button class="ghost small basepick-btn" id="basePlantBtn">Pick plant &#9662;</button>
           <button class="mini" id="clrBaseBtn" title="Clear" style="display:none;">&#10005;</button>
         </div>
         <div class="tb-sep"></div>
         <div class="tb-field" style="flex-wrap:wrap;">
           <span class="tb-label">Stops</span>
           <div id="stopsInline"></div>
-          <button class="ghost small" id="addStopBtn">+ Stop</button>
+          <button class="ghost small" id="addStopBtn">+ Add stop</button>
         </div>
         <label class="checkrow"><input type="checkbox" id="returnHome" checked> Return</label>
         <button class="green" id="calcBtn">Calculate</button>
         <button class="ghost" id="clearBtn">Clear</button>
-        <button class="ghost" id="plantsBtn">Plants</button>
+        <button class="plants-btn" id="plantsBtn">&#9873; Plants</button>
       </div>
 
       <!-- base plant picker popover -->
