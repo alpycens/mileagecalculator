@@ -471,7 +471,6 @@ function calculate(){
     var _pc=function(o){ return ukPostcode(o.address)||(o.name||o.address||""); };
     var csLines=["Home: "+_pc(state.home),"Base plant: "+_pc(state.base)];
     state.stops.forEach(function(s,i){ csLines.push("Visited plant"+(state.stops.length>1?(" "+(i+1)):"")+": "+_pc(s)); });
-    csLines.push("Claimable mileage: "+claimMi.toFixed(1)+" mi");
     var copyText=csLines.join("\n");
     resEl.innerHTML=summary+'<div style="height:8px"></div>'+legRows+
       row("Total distance driven", totalMi.toFixed(1)+" mi")+
@@ -483,7 +482,7 @@ function calculate(){
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route (shortest)</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
       '<div class="hint">Shortest route, best-case (free-flow, no traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>'+
       '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Start route</button></div>'+
-      '<label style="margin-top:12px;">Copy for your system</label><textarea id="copySummary" readonly style="min-height:82px;">'+escapeHtml(copyText)+'</textarea><button class="ghost small wide" id="copySummaryBtn">Copy</button>';
+      '<label style="margin-top:12px;">Summarize</label><textarea id="copySummary" readonly style="min-height:82px;">'+escapeHtml(copyText)+'</textarea><button class="ghost small wide" id="copySummaryBtn">Copy</button>';
     var gorigin=state.home, gdest=(returnHome?state.home:state.stops[state.stops.length-1]);
     var gwp=(returnHome?state.stops:state.stops.slice(0,-1));
     var gurl="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin="+gorigin.lat+","+gorigin.lng+"&destination="+gdest.lat+","+gdest.lng;
