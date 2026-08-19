@@ -445,7 +445,8 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){ return {
 
 /* calculation (multi-stop, shortest route, no traffic) */
 function routeDist(rt){ var t=0; rt.legs.forEach(function(l){ t+=l.distance.value; }); return t; }
-function shortestRoute(origin, dest){ return new Promise(function(resolve, reject){ directionsService.route({origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING}, function(r, s){ if(s==="OK" && r.routes && r.routes.length){ var best=r.routes[0], bestD=routeDist(best); r.routes.forEach(function(rt){ var d=routeDist(rt); if(d<bestD){ bestD=d; best=rt; } }); var leg=best.legs[0]; resolve({meters:leg.distance.value, seconds:leg.duration.value, path:best.overview_path}); } else reject(new Error("Route not found: "+s)); }); }); }
+function bestDeparture(){ var d=new Date(); d.setDate(d.getDate()+2); d.setHours(3,0,0,0); return d; }
+function shortestRoute(origin, dest){ return new Promise(function(resolve, reject){ directionsService.route({origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING, drivingOptions:{ departureTime:bestDeparture(), trafficModel:google.maps.TrafficModel.OPTIMISTIC }}, function(r, s){ if(s==="OK" && r.routes && r.routes.length){ var best=r.routes[0], bestD=routeDist(best); r.routes.forEach(function(rt){ var d=routeDist(rt); if(d<bestD){ bestD=d; best=rt; } }); var leg=best.legs[0]; var sec=(leg.duration_in_traffic&&leg.duration_in_traffic.value)||leg.duration.value; resolve({meters:leg.distance.value, seconds:sec, path:best.overview_path}); } else reject(new Error("Route not found: "+s)); }); }); }
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
   if(!state.base){ alert("Set the Base place (your normal commute)."); return; }
@@ -467,6 +468,11 @@ function calculate(){
     var baseName=(state.base.approval? ('<b>'+escapeHtml(state.base.approval)+'</b> '+escapeHtml(state.base.name)) : escapeHtml(state.base.name||state.base.address||""));
     var summary='<div class="rsub" style="margin-bottom:6px;">Base: '+baseName+(ukPostcode(state.base.address)?' ('+escapeHtml(ukPostcode(state.base.address))+')':'')+'</div>';
     state.stops.forEach(function(s,i){ var sn = s.approval ? ('<b>'+escapeHtml(s.approval)+'</b> '+escapeHtml(s.name)) : escapeHtml(s.name||s.address||""); summary+='<div class="rsub">Stop '+(i+1)+': '+sn+(ukPostcode(s.address)?' ('+escapeHtml(ukPostcode(s.address))+')':'')+'</div>'; });
+    var _pc=function(o){ return ukPostcode(o.address)||(o.name||o.address||""); };
+    var csLines=["Home: "+_pc(state.home),"Base plant: "+_pc(state.base)];
+    state.stops.forEach(function(s,i){ csLines.push("Visited plant"+(state.stops.length>1?(" "+(i+1)):"")+": "+_pc(s)); });
+    csLines.push("Claimable mileage: "+claimMi.toFixed(1)+" mi");
+    var copyText=csLines.join("\n");
     resEl.innerHTML=summary+'<div style="height:8px"></div>'+legRows+
       row("Total distance driven", totalMi.toFixed(1)+" mi")+
       row("Baseline commute deducted", "-"+deductMi.toFixed(1)+" mi"+(returnHome?" (round trip)":" (one way)"))+
@@ -475,13 +481,15 @@ function calculate(){
       row("Total drive time", Math.round(totalMin)+" min")+
       row("Claimable travel time", Math.round(claimMin)+" min ("+fmtHrs(claimMin)+")")+
       '<div class="legend"><span><span class="bar" style="background:#22c55e"></span>Your route (shortest)</span><span><span class="bar" style="background:#ef4444"></span>Baseline commute</span></div>'+
-      '<div class="hint">Shortest route, normal (no-traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>'+
-      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Start route</button></div>';
+      '<div class="hint">Shortest route, best-case (free-flow, no traffic) times. Claimable = total miles minus your normal home&#8596;base commute'+(returnHome?" (there and back)":"")+'.</div>'+
+      '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="ghost small" id="navGoogle">Start route</button></div>'+
+      '<label style="margin-top:12px;">Copy for your system</label><textarea id="copySummary" readonly style="min-height:82px;">'+escapeHtml(copyText)+'</textarea><button class="ghost small wide" id="copySummaryBtn">Copy</button>';
     var gorigin=state.home, gdest=(returnHome?state.home:state.stops[state.stops.length-1]);
     var gwp=(returnHome?state.stops:state.stops.slice(0,-1));
     var gurl="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin="+gorigin.lat+","+gorigin.lng+"&destination="+gdest.lat+","+gdest.lng;
     if(gwp.length) gurl+="&waypoints="+encodeURIComponent(gwp.map(function(s){return s.lat+","+s.lng;}).join("|"));
     var ng=document.getElementById("navGoogle"); if(ng) ng.addEventListener("click", function(){ openNav(gurl); });
+    var cs=document.getElementById("copySummaryBtn"); if(cs) cs.addEventListener("click", function(){ var ta=document.getElementById("copySummary"); ta.select(); try{ document.execCommand("copy"); cs.textContent="Copied"; setTimeout(function(){ cs.textContent="Copy"; },1500); }catch(e){ alert("Copy manually."); } });
     var b=new google.maps.LatLngBounds(); tripPath.forEach(function(pt){ b.extend(pt); }); baseLeg.path.forEach(function(pt){ b.extend(pt); }); map.fitBounds(b);
   }).catch(function(err){ resEl.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
