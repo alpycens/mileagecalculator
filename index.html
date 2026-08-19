@@ -167,6 +167,7 @@
         <span class="close" data-close="allPop">&#10005;</span>
         <h2>Claimable per plant (from Home &amp; Base)</h2>
         <div id="allList" class="plist" style="max-height:62vh;"></div>
+        <button class="ghost small wide" id="allCopyBtn" style="margin-top:8px;">Copy list</button>
       </div>
 
       <!-- plants navigation popover -->
@@ -239,7 +240,7 @@ var localPlants=[];
 var map, geocoder, directionsService, infoWin;
 var homeMarker=null, baseMarker=null, tmpM=null, stopMarkers=[], plantMarkers=[];
 var tripLine=null, baseLine=null, theme="dark";
-var ADMIN_PASS="0623", adminUnlocked=false, editingApproval=null;
+var ADMIN_PASS="0623", adminUnlocked=false, editingApproval=null, allText="";
 
 var DARK_STYLES=[{elementType:"geometry",stylers:[{color:"#1e293b"}]},{elementType:"labels.text.fill",stylers:[{color:"#94a3b8"}]},{elementType:"labels.text.stroke",stylers:[{color:"#0f172a"}]},{featureType:"water",elementType:"geometry",stylers:[{color:"#0b1220"}]},{featureType:"road",elementType:"geometry",stylers:[{color:"#334155"}]},{featureType:"poi",stylers:[{visibility:"off"}]}];
 var LIGHT_STYLES=[{featureType:"poi",stylers:[{visibility:"off"}]}];
@@ -326,6 +327,7 @@ window.initMap=function(){
   document.getElementById("plantsBtn").addEventListener("click", function(){ if(togglePop("plantsPop")){ var q=document.getElementById("plantsSearch"); q.value=""; renderPlantsNav(""); q.focus(); } });
   document.getElementById("plantsSearch").addEventListener("input", function(){ renderPlantsNav(this.value.trim()); });
   document.getElementById("allBtn").addEventListener("click", function(){ if(togglePop("allPop")) computeAllPlants(); });
+  document.getElementById("allCopyBtn").addEventListener("click", function(){ copyToClipboard(allText, this, "Copy list"); });
   document.getElementById("returnHome").addEventListener("change", saveState);
   Array.prototype.forEach.call(document.querySelectorAll(".pop .close"), function(x){ x.addEventListener("click", function(){ document.getElementById(x.getAttribute("data-close")).style.display="none"; }); });
 
@@ -486,10 +488,14 @@ function computeAllPlants(){
     }, 5);
   }).then(function(rows){
     rows.sort(function(a,b){ return a.mi-b.mi; });
+    allText=rows.map(function(r){ return r.approval+" "+r.name+(r.pc?" "+r.pc:"")+" - "+r.mi.toFixed(1)+" mi, "+Math.round(r.min)+" min"; }).join("\n");
     el.innerHTML='<div class="rsub" style="margin-bottom:6px;">'+(returnHome?"Return trip":"One way")+' claimable, per plant</div>'+
       rows.map(function(r){ return '<div class="loc-row"><span class="addr"><b>'+escapeHtml(r.approval)+'</b> - '+escapeHtml(r.name)+(r.pc?' <span class="rsub">'+escapeHtml(r.pc)+'</span>':'')+'</span><span style="text-align:right;white-space:nowrap;"><b>'+r.mi.toFixed(1)+' mi</b><br><span class="rsub">'+Math.round(r.min)+' min</span></span></div>'; }).join("");
-  }).catch(function(err){ el.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
+  }).catch(function(err){ allText=""; el.innerHTML='<div class="err">'+escapeHtml(err.message)+'</div>'; });
 }
+function legacyCopy(t){ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(e){} document.body.removeChild(ta); }
+function copyToClipboard(t, btn, label){ if(!t){ return; } var done=function(){ if(btn){ btn.textContent="Copied"; setTimeout(function(){ btn.textContent=label; },1500); } };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done).catch(function(){ legacyCopy(t); done(); }); } else { legacyCopy(t); done(); } }
 function shortestRoute(origin, dest){ return new Promise(function(resolve, reject){ directionsService.route({origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING, drivingOptions:{ departureTime:bestDeparture(), trafficModel:google.maps.TrafficModel.OPTIMISTIC }}, function(r, s){ if(s==="OK" && r.routes && r.routes.length){ var best=r.routes[0], bestD=routeDist(best); r.routes.forEach(function(rt){ var d=routeDist(rt); if(d<bestD){ bestD=d; best=rt; } }); var leg=best.legs[0]; var sec=(leg.duration_in_traffic&&leg.duration_in_traffic.value)||leg.duration.value; resolve({meters:leg.distance.value, seconds:sec, path:best.overview_path}); } else reject(new Error("Route not found: "+s)); }); }); }
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
