@@ -496,7 +496,13 @@ function computeAllPlants(){
 function legacyCopy(t){ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(e){} document.body.removeChild(ta); }
 function copyToClipboard(t, btn, label){ if(!t){ return; } var done=function(){ if(btn){ btn.textContent="Copied"; setTimeout(function(){ btn.textContent=label; },1500); } };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done).catch(function(){ legacyCopy(t); done(); }); } else { legacyCopy(t); done(); } }
-function shortestRoute(origin, dest){ return new Promise(function(resolve, reject){ directionsService.route({origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING, drivingOptions:{ departureTime:bestDeparture(), trafficModel:google.maps.TrafficModel.OPTIMISTIC }}, function(r, s){ if(s==="OK" && r.routes && r.routes.length){ var best=r.routes[0], bestD=routeDist(best); r.routes.forEach(function(rt){ var d=routeDist(rt); if(d<bestD){ bestD=d; best=rt; } }); var leg=best.legs[0]; var sec=(leg.duration_in_traffic&&leg.duration_in_traffic.value)||leg.duration.value; resolve({meters:leg.distance.value, seconds:sec, path:best.overview_path}); } else reject(new Error("Route not found: "+s)); }); }); }
+function routeOnce(req){ return new Promise(function(res, rej){ directionsService.route(req, function(r, s){ if(s==="OK" && r.routes && r.routes.length) res(r); else rej(new Error("Route not found: "+s)); }); }); }
+function pickShortest(r){ var best=r.routes[0], bestD=routeDist(best); r.routes.forEach(function(rt){ var d=routeDist(rt); if(d<bestD){ bestD=d; best=rt; } }); var leg=best.legs[0]; var sec=(leg.duration_in_traffic&&leg.duration_in_traffic.value)||leg.duration.value; return {meters:leg.distance.value, seconds:sec, path:best.overview_path}; }
+function shortestRoute(origin, dest){
+  var base={origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING};
+  var withTraffic={origin:origin, destination:dest, provideRouteAlternatives:true, travelMode:google.maps.TravelMode.DRIVING, drivingOptions:{ departureTime:bestDeparture(), trafficModel:google.maps.TrafficModel.OPTIMISTIC }};
+  return routeOnce(withTraffic).then(pickShortest).catch(function(){ return routeOnce(base).then(pickShortest); });
+}
 function calculate(){
   if(!state.home){ alert("Set Home first."); return; }
   if(!state.base){ alert("Set the Base place (your normal commute)."); return; }
