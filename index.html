@@ -31,25 +31,35 @@
 
   /* top toolbar strip over the map */
   .side{position:absolute;top:10px;left:10px;right:10px;z-index:500;}
-  .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(30,41,59,.94);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.35);padding:8px 10px;}
-  body.light .toolbar{background:rgba(255,255,255,.95);}
-  .tb-field{display:flex;align-items:center;gap:6px;}
-  .tb-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
-  .tb-field input[type=text]{width:150px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px;cursor:pointer;}
-  .tb-field input[type=text]:focus{outline:none;border-color:var(--accent);cursor:text;}
-  .addr-field{flex:1 1 240px;min-width:180px;}
-  .addr-field input[type=text]{flex:1;width:auto;min-width:0;}
+  .toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;background:rgba(30,41,59,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.4);padding:11px 13px;}
+  body.light .toolbar{background:rgba(255,255,255,.97);}
+  .tb-field{display:flex;flex-direction:column;gap:4px;}
+  .tb-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700;}
+  .tb-inwrap{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px 4px 2px 2px;transition:border-color .15s;}
+  .tb-inwrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.15);}
+  .tb-field input[type=text]{width:150px;padding:8px 9px;border-radius:8px;border:none;background:transparent;color:var(--text);font-size:14px;cursor:pointer;}
+  .tb-field input[type=text]:focus{outline:none;cursor:text;}
+  .addr-field{flex:1 1 230px;min-width:180px;}
+  .addr-field .tb-inwrap{width:100%;} .addr-field input[type=text]{flex:1;width:auto;min-width:0;}
   @media(max-width:640px){ .addr-field{flex:1 1 100%;} }
-  .tb-sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px;}
-  button{cursor:pointer;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#fff;background:var(--accent);transition:opacity .15s;}
-  button:hover{opacity:.9;}
+  .tb-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+  button{cursor:pointer;border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;color:#fff;background:var(--accent);transition:transform .1s,box-shadow .15s,opacity .15s;display:inline-flex;align-items:center;gap:6px;}
+  button:hover{opacity:.92;transform:translateY(-1px);}
+  button:active{transform:translateY(0);}
   button.ghost{background:var(--panel);border:1px solid var(--line);color:var(--text);}
-  button.green{background:var(--accent2);} button.small{padding:6px 9px;font-size:12px;} button.wide{width:100%;margin-top:8px;}
-  button.mini{background:transparent;border:none;color:var(--muted);padding:2px 4px;font-size:14px;} button.mini:hover{color:var(--danger);}
+  button.ghost:hover{border-color:var(--accent);color:var(--accent);opacity:1;}
+  button.green{background:var(--accent2);box-shadow:0 2px 10px rgba(34,197,94,.35);} button.small{padding:7px 11px;font-size:12px;} button.wide{width:100%;margin-top:8px;}
+  button.calc{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 3px 12px rgba(34,197,94,.4);font-size:14px;padding:10px 18px;}
+  button.mini{background:transparent;border:none;color:var(--muted);padding:2px 4px;font-size:14px;} button.mini:hover{color:var(--danger);transform:none;}
   .chip{background:var(--panel);border:1px solid var(--line);color:var(--text);font-weight:600;}
   .plants-btn{background:#f97316;color:#fff;border:1px solid #f97316;}
-  .plants-btn:hover{opacity:.9;}
-  .basepick-btn{border-color:var(--accent);color:var(--accent);}
+  .plants-btn:hover{opacity:.92;color:#fff;}
+  .basepick-btn{border-color:var(--accent);color:var(--accent);background:transparent;}
+  .basepick-btn:hover{background:var(--accent);color:#fff;}
+  .addstop-btn{border:1px dashed var(--accent);color:var(--accent);background:transparent;}
+  .addstop-btn:hover{background:var(--accent);color:#fff;border-style:solid;}
+  .ret-toggle{display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;user-select:none;}
+  .ret-toggle input{width:auto;cursor:pointer;accent-color:var(--accent2);}
   .ob{background:transparent;border:1px solid var(--accent);color:var(--accent);}
   .ob:hover{background:var(--accent);color:#fff;opacity:1;}
   .pbtn{background:#f97316;color:#fff;border:none;}
@@ -127,28 +137,34 @@
       <!-- compact horizontal toolbar -->
       <div class="toolbar" id="toolbar">
         <div class="tb-field addr-field">
-          <span class="tb-label">Home</span>
-          <input type="text" id="homeSearch" autocomplete="off" placeholder="postcode / address">
-          <button class="mini" id="clrHomeBtn" title="Clear" style="display:none;">&#10005;</button>
+          <span class="tb-label">&#127968; Home</span>
+          <div class="tb-inwrap">
+            <input type="text" id="homeSearch" autocomplete="off" placeholder="postcode / address">
+            <button class="mini" id="clrHomeBtn" title="Clear" style="display:none;">&#10005;</button>
+          </div>
         </div>
-        <div class="tb-sep"></div>
         <div class="tb-field addr-field">
-          <span class="tb-label">Base</span>
-          <input type="text" id="baseSearch" autocomplete="off" placeholder="postcode / address">
-          <button class="ghost small basepick-btn" id="basePlantBtn">Pick plant &#9662;</button>
-          <button class="mini" id="clrBaseBtn" title="Clear" style="display:none;">&#10005;</button>
+          <span class="tb-label">&#128205; Base</span>
+          <div class="tb-inwrap">
+            <input type="text" id="baseSearch" autocomplete="off" placeholder="postcode / address">
+            <button class="basepick-btn small" id="basePlantBtn">Plant &#9662;</button>
+            <button class="mini" id="clrBaseBtn" title="Clear" style="display:none;">&#10005;</button>
+          </div>
         </div>
-        <div class="tb-sep"></div>
-        <div class="tb-field" style="flex-wrap:wrap;">
-          <span class="tb-label">Stops</span>
-          <div id="stopsInline"></div>
-          <button class="ghost small" id="addStopBtn">+ Add stop</button>
+        <div class="tb-field" style="flex:1 1 160px;">
+          <span class="tb-label">&#128652; Stops</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:38px;">
+            <div id="stopsInline"></div>
+            <button class="addstop-btn small" id="addStopBtn">&#43; Add stop</button>
+          </div>
         </div>
-        <label class="checkrow"><input type="checkbox" id="returnHome" checked> Return</label>
-        <button class="green" id="calcBtn">Calculate</button>
-        <button class="ghost" id="clearBtn">Clear</button>
-        <button class="plants-btn" id="plantsBtn">&#9873; Plants</button>
-        <button class="ghost" id="allBtn">All distances</button>
+        <div class="tb-actions">
+          <label class="ret-toggle"><input type="checkbox" id="returnHome" checked> Return</label>
+          <button class="calc" id="calcBtn">&#9654; Calculate</button>
+          <button class="ghost" id="clearBtn">&#10227; Clear</button>
+          <button class="plants-btn" id="plantsBtn">&#9873; Plants</button>
+          <button class="ghost" id="allBtn">&#9783; All distances</button>
+        </div>
       </div>
 
       <!-- base plant picker popover -->
@@ -317,7 +333,7 @@ window.initMap=function(){
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
   document.getElementById("basePlantBtn").addEventListener("click", function(){ if(togglePop("basePop")){ var i=document.getElementById("basePick"); i.value=""; i.focus(); } });
-  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopSearch"); i.value=""; i.focus(); } });
+  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopPick"); i.value=""; i.focus(); } });
   document.getElementById("savePlantBtn").addEventListener("click", savePlant);
   document.getElementById("genCodeBtn").addEventListener("click", genDeployCode);
   document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
