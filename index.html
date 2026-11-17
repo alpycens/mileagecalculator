@@ -357,9 +357,23 @@ window.initMap=function(){
 
 function attachSearch(inputId, onPick){
   var input=document.getElementById(inputId);
+  var picked=false;
   var ac=new google.maps.places.Autocomplete(input,{componentRestrictions:{country:"gb"}, fields:["geometry","formatted_address","name"]});
-  ac.addListener("place_changed", function(){ var p=ac.getPlace(); if(!p.geometry) return; onPick({lat:p.geometry.location.lat(), lng:p.geometry.location.lng(), address:p.formatted_address||p.name||""}); map.panTo(p.geometry.location); map.setZoom(13); });
-  input.addEventListener("keydown", function(e){ if(e.key==="Enter"){ var c=parseCoordinates(this.value); if(c){ e.preventDefault(); e.stopPropagation(); var self=this; reverseGeocode(new google.maps.LatLng(c.lat,c.lng), function(addr){ onPick({lat:c.lat,lng:c.lng,address:addr||self.value.trim()}); }); map.panTo(c); map.setZoom(14); } } });
+  ac.addListener("place_changed", function(){ var p=ac.getPlace(); if(!p.geometry) return; picked=true; onPick({lat:p.geometry.location.lat(), lng:p.geometry.location.lng(), address:p.formatted_address||p.name||""}); map.panTo(p.geometry.location); map.setZoom(13); });
+  input.addEventListener("keydown", function(e){
+    if(e.key!=="Enter") return;
+    var txt=this.value.trim(); if(!txt) return;
+    var c=parseCoordinates(txt);
+    if(c){ e.preventDefault(); e.stopPropagation(); var self=this; reverseGeocode(new google.maps.LatLng(c.lat,c.lng), function(addr){ onPick({lat:c.lat,lng:c.lng,address:addr||txt}); }); map.panTo(c); map.setZoom(14); return; }
+    // plain address/postcode: geocode it if no autocomplete suggestion was chosen
+    picked=false;
+    setTimeout(function(){
+      if(picked) return;
+      geocoder.geocode({address:txt, componentRestrictions:{country:"GB"}}, function(res, status){
+        if(status==="OK" && res[0]){ var g=res[0].geometry.location; onPick({lat:g.lat(), lng:g.lng(), address:res[0].formatted_address||txt}); map.panTo(g); map.setZoom(13); }
+      });
+    }, 350);
+  });
 }
 function setHome(loc){ state.home=loc; saveState(); refreshMarkers(); renderHomeRow(); }
 function clearHome(){ state.home=null; document.getElementById("homeSearch").value=""; saveState(); refreshMarkers(); renderHomeRow(); }
