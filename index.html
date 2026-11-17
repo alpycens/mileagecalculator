@@ -65,7 +65,9 @@
   .pbtn{background:#f97316;color:#fff;border:none;}
   .pbtn:hover{opacity:.9;}
   #stopsInline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-  .stop-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:4px 9px 4px 5px;font-size:12px;}
+  .stop-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:4px 9px 4px 5px;font-size:12px;cursor:pointer;transition:border-color .12s,background .12s;}
+  .stop-chip:hover{border-color:var(--danger);}
+  .stop-chip:hover .ap{color:var(--danger);}
   .stop-chip .sn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--accent2);color:#fff;font-weight:700;font-size:11px;flex:0 0 20px;}
   .stop-chip .ap{font-size:15px;font-weight:700;color:var(--text);}
   .stop-chip .x{cursor:pointer;color:var(--muted);font-size:14px;line-height:1;} .stop-chip .x:hover{color:var(--danger);}
@@ -444,11 +446,11 @@ function renderStops(){
   if(state.stops.length===0){ el.innerHTML=""; return; }
   el.innerHTML=state.stops.map(function(s,i){ var pc=ukPostcode(s.address); var t=escapeHtml((s.name||"")+(pc?" ("+pc+")":""));
     var lab = s.approval ? escapeHtml(s.approval) : escapeHtml(pc || (s.name||"").slice(0,16));
-    return '<span class="stop-chip" title="'+t+'"><span class="sn">'+(i+1)+'</span><span class="ap">'+lab+'</span>'+
-      '<span class="x" data-up="'+i+'" title="Move left">&#8249;</span><span class="x" data-down="'+i+'" title="Move right">&#8250;</span><span class="x" data-rm="'+i+'" title="Remove">&#10005;</span></span>'; }).join("");
-  el.querySelectorAll("[data-up]").forEach(function(x){ x.addEventListener("click", function(){ moveStop(+x.getAttribute("data-up"),-1); }); });
-  el.querySelectorAll("[data-down]").forEach(function(x){ x.addEventListener("click", function(){ moveStop(+x.getAttribute("data-down"),1); }); });
-  el.querySelectorAll("[data-rm]").forEach(function(x){ x.addEventListener("click", function(){ removeStop(+x.getAttribute("data-rm")); }); });
+    return '<span class="stop-chip" data-rm="'+i+'" title="Tap to remove '+t+'"><span class="sn">'+(i+1)+'</span><span class="ap">'+lab+'</span>'+
+      '<span class="x" data-up="'+i+'" title="Move left">&#8249;</span><span class="x" data-down="'+i+'" title="Move right">&#8250;</span><span class="x xrm" title="Remove">&#10005;</span></span>'; }).join("");
+  el.querySelectorAll("[data-up]").forEach(function(x){ x.addEventListener("click", function(e){ e.stopPropagation(); moveStop(+x.getAttribute("data-up"),-1); }); });
+  el.querySelectorAll("[data-down]").forEach(function(x){ x.addEventListener("click", function(e){ e.stopPropagation(); moveStop(+x.getAttribute("data-down"),1); }); });
+  el.querySelectorAll(".stop-chip[data-rm]").forEach(function(c){ c.addEventListener("click", function(){ removeStop(+c.getAttribute("data-rm")); }); });
 }
 function restoreSelections(){ if(state._stops && state._stops.length){ state.stops=state._stops.slice(); } else if(state._stopApprovals && state._stopApprovals.length){ state._stopApprovals.forEach(function(ap){ var p=plantByApproval(ap); if(p) state.stops.push(p); }); } }
 function clearJourney(){ state.stops=[]; saveState(); renderStops(); refreshMarkers(); if(tripLine) tripLine.setPath([]); if(baseLine) baseLine.setPath([]); document.getElementById("resultPop").style.display="none"; }
