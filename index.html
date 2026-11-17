@@ -333,7 +333,7 @@ window.initMap=function(){
   document.getElementById("clrHomeBtn").addEventListener("click", clearHome);
   document.getElementById("clrBaseBtn").addEventListener("click", clearBase);
   document.getElementById("basePlantBtn").addEventListener("click", function(){ if(togglePop("basePop")){ var i=document.getElementById("basePick"); i.value=""; i.focus(); } });
-  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopPick"); i.value=""; i.focus(); } });
+  document.getElementById("addStopBtn").addEventListener("click", function(){ if(togglePop("stopPop")){ var i=document.getElementById("stopPick"); i.value=""; i.focus(); document.getElementById("stopList").style.display="none"; } });
   document.getElementById("savePlantBtn").addEventListener("click", savePlant);
   document.getElementById("genCodeBtn").addEventListener("click", genDeployCode);
   document.getElementById("copyCodeBtn").addEventListener("click", copyDeployCode);
